@@ -248,6 +248,9 @@ public class Player extends Actor {
 
     public boolean godMode = false;
 
+    /** Selected class for the current run. */
+    public PlayerClass playerClass = PlayerClass.NONE;
+
     /** Mana regeneration */
     public float manaRegenRate = 0.05f;
     private transient float manaRegenAccumulator = 0f;
