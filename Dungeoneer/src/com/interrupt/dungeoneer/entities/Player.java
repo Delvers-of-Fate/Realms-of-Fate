@@ -251,7 +251,7 @@ public class Player extends Actor {
     /** Mana regeneration */
     public float manaRegenRate = 0.05f;
     private transient float manaRegenAccumulator = 0f;
-    public boolean manaRegenerationEnabled = true;
+    public boolean manaRegenerationEnabled = false;
 
     // Used to act on breaking changes between save versions
     public int saveVersion = -1;

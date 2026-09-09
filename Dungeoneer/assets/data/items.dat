@@ -215,9 +215,9 @@
             "usesMana": true,
             "spell": {
                 "class": "com.interrupt.dungeoneer.entities.spells.MagicMissile",
+                "mpCost": 5,
                 "magicMissileProjectile": {
                     "class": "com.interrupt.dungeoneer.entities.projectiles.MagicMissileProjectile",
-                    "mpCost": 5,
                     "tex": 52,
                     "endAnimTex": 55,
                     "scale": 0.5,
@@ -304,17 +304,6 @@
             "itemType": "potion",
             "tex": 3,
             "name": "Blue potion",
-            "yOffset": -0.11,
-            "cost": 30,
-            "pickupSound": "pu_glass.mp3",
-            "dropSound": "drops/drop_glass_01.mp3,drops/drop_glass_02.mp3,drops/drop_glass_03.mp3"
-        },
-        {
-            "class": "com.interrupt.dungeoneer.entities.items.Potion",
-            "potionType": "mana,"
-            "itemType": "potion",
-            "tex": 3,
-            "name": "Mana Potion",
             "yOffset": -0.11,
             "cost": 30,
             "pickupSound": "pu_glass.mp3",
