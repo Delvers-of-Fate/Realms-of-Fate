@@ -1,0 +1,8 @@
+{
+    "$schema":"http://delverengine.com/jsonschema/current/dungeoneer/game/GameData.schema.json",
+    "entityDataFiles": ["entities.dat"],
+    "monsterDataFiles": ["monsters.dat"],
+    "itemDataFiles": ["items.dat"],
+    "playerDataFile": "player.dat",
+    "playerJumpEnabled": true
+}

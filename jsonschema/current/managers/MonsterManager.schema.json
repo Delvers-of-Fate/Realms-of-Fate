@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "ItemManager",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "$schema": {
+            "const": "http://delverengine.com/jsonschema/current/managers/MonsterManager.schema.json"
+        },
+        "class": {
+            "const": "com.interrupt.managers.ItemManager",
+            "description": "Fully-qualified Java class name."
+        },
+        "monsters": {
+            "description": "Mapping of dungeon themes to monster tables.",
+            "type": "object",
+            "patternProperties": {
+                "[\\w]+": {
+                    "description": "Theme monster is found in.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "../dungeoneer/entities/Monster.schema.json"
+                    }
+                }
+            }
+        }
+    }
+}

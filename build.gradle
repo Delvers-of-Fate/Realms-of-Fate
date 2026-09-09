@@ -1,0 +1,63 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+}
+
+allprojects {
+    apply plugin: "eclipse"
+    apply plugin: "idea"
+
+    version = '1.4.0'
+    ext {
+        appName = "delver"
+        gdxVersion = '1.9.9'
+        roboVMVersion = '2.3.9'
+        kryoVersion = '2.24.0'
+        reflectionsVersion = '0.9.12'
+        inkVersion = '0.7.3'
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    }
+}
+
+project(":DungeoneerDesktop") {
+    apply plugin: "java-library"
+
+    dependencies {
+        implementation project(":Dungeoneer")
+        api "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        api "com.badlogicgames.gdx:gdx-controllers-desktop:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-controllers-platform:$gdxVersion:natives-desktop"
+    }
+}
+
+project(":DelvEdit") {
+    apply plugin: "java-library"
+
+    dependencies {
+        implementation project(":Dungeoneer")
+        api "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        api "org.reflections:reflections:$reflectionsVersion"
+    }
+}
+
+project(":Dungeoneer") {
+    apply plugin: "java-library"
+
+    dependencies {
+        api "com.badlogicgames.gdx:gdx:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-controllers:$gdxVersion"
+        api "com.esotericsoftware.kryo:kryo:$kryoVersion"
+        api "com.bladecoder.ink:blade-ink:$inkVersion"
+    }
+}
