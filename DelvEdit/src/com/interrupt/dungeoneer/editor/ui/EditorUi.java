@@ -446,7 +446,13 @@ public class EditorUi {
         if(entityPropertiesPane != null && propertiesMenu != null) {
             boolean fillsStage = propertiesSize.y > stage.getHeight() - menuBar.getHeight();
 
-            entityPropertiesPane.setSize(propertiesSize.x + (fillsStage ? 60f : 30f), propertiesSize.y);
+            //entityPropertiesPane.setSize(propertiesSize.x + (fillsStage ? 60f : 30f), propertiesSize.y);
+            float inspectorWidth = 430f;
+
+            entityPropertiesPane.setSize(
+                inspectorWidth,
+                Math.min(propertiesSize.y, stage.getHeight() - menuBar.getHeight())
+            );
 
             sidebarTable.setSize(entityPropertiesPane.getWidth(), stage.getHeight() - menuBar.getHeight());
             sidebarTable.setX(stage.getWidth() - sidebarTable.getWidth());

@@ -20,6 +20,8 @@ import com.interrupt.dungeoneer.gfx.TextureAtlas;
 import com.interrupt.dungeoneer.gfx.Material;
 import org.lwjgl.LWJGLUtil;
 
+import com.badlogic.gdx.graphics.Color;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -29,6 +31,8 @@ import java.util.HashMap;
 public class PropertiesMenu extends Table {
     public ArrayMap<String, Array<Field>> arrayMap = new ArrayMap<String, Array<Field>>();
     private HashMap<Field, Actor> fieldMap = new HashMap<Field, Actor>();
+
+    private static final Color PROPERTY_HEADER_COLOR = new Color(0.30f, 0.70f, 1.00f, 1.00f);
 
     private final Array<Entity> selectedEntities;
     private final Array<Class> classes;
@@ -52,7 +56,7 @@ public class PropertiesMenu extends Table {
         classes.removeAll(nonCommon, true);
 
         try {
-            // Show entity name as pane header.
+            // Modern inspector header
             String[] nameParts = entity.getClass().getName().split("\\.");
 
             String entityName = "Unknown";
@@ -60,9 +64,18 @@ public class PropertiesMenu extends Table {
                 entityName = nameParts[nameParts.length - 1];
             }
 
-            add(new Label(entityName, EditorUi.mediumSkin))
-                    .align(Align.left)
-                    .padLeft(-12f);
+            Label entityHeader = new Label(entityName, EditorUi.mediumSkin);
+            entityHeader.setColor(1f, 1f, 1f, 1f);
+
+            add(entityHeader)
+                .colspan(2)
+                .growX()
+                .align(Align.left)
+                .padLeft(16f)
+                .padRight(16f)
+                .padTop(14f)
+                .padBottom(14f);
+
             row();
 
             // gather all of the fields into groups
@@ -98,7 +111,18 @@ public class PropertiesMenu extends Table {
                 }
 
                 if(fields.size == 0) continue;
-                add(item.key).colspan(2).align(Align.left).padLeft(-8f);
+                Label groupHeader = new Label(item.key.toUpperCase(), skin);
+                groupHeader.setColor(PROPERTY_HEADER_COLOR);
+
+                add(groupHeader)
+                    .colspan(2)
+                    .growX()
+                    .align(Align.left)
+                    .padLeft(14f)
+                    .padRight(14f)
+                    .padTop(16f)
+                    .padBottom(7f);
+
                 row();
 
                 // loop through the fields in the group
@@ -106,7 +130,7 @@ public class PropertiesMenu extends Table {
                     Object value = getCommonValue(field, entities);
 
                     Label label = new Label(field.getName(), skin);
-                    label.setColor(1f, 1f, 1f, 0.75f);
+                    label.setColor(0.82f, 0.84f, 0.87f, 1f);
 
                     String v = "";
                     if(value != null) v = value.toString();
@@ -406,8 +430,21 @@ public class PropertiesMenu extends Table {
                         setSelectedIn(sb, v);
                         sb.addListener(getSelectBoxListener(field));
 
-                        add(label).align(Align.left);
-                        add(sb).align(Align.left).fill();
+                        add(label)
+                            .width(160f)
+                            .align(Align.left)
+                            .padLeft(14f)
+                            .padRight(12f)
+                            .padTop(5f)
+                            .padBottom(5f);
+
+                        add(sb)
+                            .width(210f)
+                            .height(34f)
+                            .align(Align.left)
+                            .padRight(14f)
+                            .padTop(5f)
+                            .padBottom(5f);
 
                         fieldMap.put(field, sb);
                     }
