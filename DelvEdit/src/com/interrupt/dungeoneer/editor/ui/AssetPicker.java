@@ -22,6 +22,9 @@ import java.util.Comparator;
 
 public class AssetPicker extends Dialog {
 
+    private static final Color EDITOR_ACCENT_COLOR =
+        new Color(0.30f, 0.70f, 1.00f, 1.00f);
+
     public interface ResultListener {
         boolean result(boolean success, String result);
     }
@@ -87,6 +90,7 @@ public class AssetPicker extends Dialog {
 
         fileListLabel = new Label("", skin);
         fileListLabel.setAlignment(Align.left);
+        fileListLabel.setColor(EDITOR_ACCENT_COLOR);
 
         fileList = new List(skin);
 
@@ -97,7 +101,7 @@ public class AssetPicker extends Dialog {
         }
 
         fileNameLabel = new Label("File name", skin);
-        fileNameLabel.setColor(Color.GRAY);
+        fileNameLabel.setColor(0.82f, 0.84f, 0.87f, 1f);
         fileNameInput.setTextFieldListener(new TextFieldListener() {
             @Override
             public void keyTyped(TextField textField, char c) {
@@ -152,8 +156,10 @@ public class AssetPicker extends Dialog {
 
         String title = currentDir;
 
-        if(title.equals("")) title = "/";
-        if (title.length() > 38) title = "..." + title.substring(title.length() - 38, title.length());
+        if(title.equals("")) {
+            title = "/";
+        }
+
         fileListLabel.setText(title);
 
         final Array<AssetListItem> items = new Array<AssetListItem>();
@@ -235,12 +241,45 @@ public class AssetPicker extends Dialog {
     @Override
     public Dialog show(Stage stage) {
         final Table content = getContentTable();
-        content.add(fileListLabel).colspan(2).top().left().expandX().fillX().row();
-        ScrollPane pane = new ScrollPane(fileList, skin);
-        content.add(pane).size(300, 350).colspan(2).fill().expand().row();
 
-        content.add(fileNameLabel);
-        content.add(fileNameInput).fillX().expandX().row();
+        content.add(fileListLabel)
+            .colspan(2)
+            .left()
+            .expandX()
+            .fillX()
+            .padLeft(14f)
+            .padRight(14f)
+            .padTop(12f)
+            .padBottom(10f)
+            .row();
+
+        ScrollPane pane = new ScrollPane(fileList, skin);
+        pane.setFadeScrollBars(false);
+
+        content.add(pane)
+            .width(560f)
+            .height(440f)
+            .colspan(2)
+            .fill()
+            .expand()
+            .padLeft(14f)
+            .padRight(14f)
+            .padBottom(12f)
+            .row();
+
+        content.add(fileNameLabel)
+            .left()
+            .width(110f)
+            .padLeft(14f)
+            .padBottom(12f);
+
+        content.add(fileNameInput)
+            .fillX()
+            .expandX()
+            .height(34f)
+            .padRight(14f)
+            .padBottom(12f)
+            .row();
         stage.setKeyboardFocus(fileNameInput);
 
         Gdx.app.log("DelvEdit", "Showing AssetPicker dialog");
