@@ -2295,7 +2295,7 @@ public class EditorApplication implements ApplicationListener {
 	}
 
     private void setupHud(TextureRegion[] wallTextures) {
-		ui = new EditorUi();
+        ui = new EditorUi();
 
         wallPickerButton = new Image(new TextureRegionDrawable(wallTextures[0]));
         wallPickerButton.setScaling(Scaling.stretch);
@@ -2310,31 +2310,104 @@ public class EditorApplication implements ApplicationListener {
         floorPickerButton.setScaling(Scaling.stretch);
 
         Stage stage = ui.getStage();
+
         Table wallPickerLayoutTable = new Table();
         wallPickerLayoutTable.setFillParent(true);
-        wallPickerLayoutTable.align(Align.left | Align.top).pad(6f).padTop(150f);
+        wallPickerLayoutTable.align(Align.left | Align.top);
+        wallPickerLayoutTable.padLeft(12f);
+        wallPickerLayoutTable.padTop(95f);
 
+        // Compact texture painting panel
+        Table texturePanel = new Table(ui.getSmallSkin());
+        texturePanel.align(Align.topLeft);
+        texturePanel.pad(10f);
+
+        // Header
+        Label textureHeader = new Label("TEXTURE PAINT", ui.getSmallSkin());
+        textureHeader.setColor(0.30f, 0.70f, 1.00f, 1.00f);
+
+        texturePanel.add(textureHeader)
+            .colspan(2)
+            .left()
+            .padBottom(10f);
+
+        texturePanel.row();
+
+        // Labels
         Label wallLabel = new Label("Upper Wall", ui.getSmallSkin());
         Label wallBottomLabel = new Label("Lower Wall", ui.getSmallSkin());
         Label ceilingLabel = new Label("Ceiling", ui.getSmallSkin());
         Label floorLabel = new Label("Floor", ui.getSmallSkin());
 
-        wallPickerLayoutTable.add(wallPickerButton).width(50f).height(50f).align(Align.left).padBottom(6f);
-        wallPickerLayoutTable.add(wallLabel).align(Align.left);
-        wallPickerLayoutTable.row();
-        wallPickerLayoutTable.add(bottomWallPickerButton).width(50f).height(50f).align(Align.left).padBottom(6f);
-        wallPickerLayoutTable.add(wallBottomLabel).align(Align.left);
-        wallPickerLayoutTable.row();
-        wallPickerLayoutTable.add(ceilPickerButton).width(50f).height(50f).align(Align.left).padBottom(6f);
-        wallPickerLayoutTable.add(ceilingLabel).align(Align.left);
-        wallPickerLayoutTable.row();
-        wallPickerLayoutTable.add(floorPickerButton).width(50f).height(50f).align(Align.left);
-        wallPickerLayoutTable.add(floorLabel).align(Align.left);
-        wallPickerLayoutTable.row();
+        // Upper Wall
+        texturePanel.add(wallPickerButton)
+            .width(46f)
+            .height(46f)
+            .left()
+            .padRight(10f)
+            .padBottom(6f);
 
+        texturePanel.add(wallLabel)
+            .left()
+            .padBottom(6f);
+
+        texturePanel.row();
+
+        // Lower Wall
+        texturePanel.add(bottomWallPickerButton)
+            .width(46f)
+            .height(46f)
+            .left()
+            .padRight(10f)
+            .padBottom(6f);
+
+        texturePanel.add(wallBottomLabel)
+            .left()
+            .padBottom(6f);
+
+        texturePanel.row();
+
+        // Ceiling
+        texturePanel.add(ceilPickerButton)
+            .width(46f)
+            .height(46f)
+            .left()
+            .padRight(10f)
+            .padBottom(6f);
+
+        texturePanel.add(ceilingLabel)
+            .left()
+            .padBottom(6f);
+
+        texturePanel.row();
+
+        // Floor
+        texturePanel.add(floorPickerButton)
+            .width(46f)
+            .height(46f)
+            .left()
+            .padRight(10f)
+            .padBottom(6f);
+
+        texturePanel.add(floorLabel)
+            .left()
+            .padBottom(10f);
+
+        texturePanel.row();
+
+        // Paint Adjacent
         paintAdjacent = new CheckBox("Paint adjacent", ui.getSmallSkin());
         paintAdjacent.setChecked(true);
-        wallPickerLayoutTable.add(paintAdjacent).colspan(2).padLeft(-10f);
+
+        texturePanel.add(paintAdjacent)
+            .colspan(2)
+            .left()
+            .padTop(0f);
+
+        // Put the compact panel into the full-screen anchor
+        wallPickerLayoutTable.add(texturePanel)
+            .left()
+            .top();
 
         wallPickerButton.addListener(new ClickListener() {
             @Override

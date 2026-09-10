@@ -11,7 +11,7 @@ public class Scene2dMenuBar extends Scene2dMenu {
     public Scene2dMenuBar(Skin skin) {
         super(skin);
         playButton = new Button(skin);
-        playButton.add(new Image(skin, "menu-arrow")).size(10);
+        playButton.add(new Image(skin, "menu-arrow")).size(14);
     }
 
     @Override
@@ -28,7 +28,6 @@ public class Scene2dMenuBar extends Scene2dMenu {
 
     @Override
     public void pack() {
-        if(menuTable != null) menuTable.add().width(5000f);
         super.pack();
     }
 
@@ -58,12 +57,25 @@ public class Scene2dMenuBar extends Scene2dMenu {
 
         // add the rows
         for(Actor a : items) {
-            menuTable.add(a).align(Align.left).fill();
+            menuTable.add(a)
+                .align(Align.left)
+                .fill()
+                .padLeft(6f)
+                .padRight(6f)
+                .padTop(3f)
+                .padBottom(3f);
+
             r = a.getRight();
         }
 
-        menuTable.add().width(getParent().getWidth() - 40 - r);
-        menuTable.add(playButton).width(30).height(30).align(Align.right).padTop(2).padRight(10).fill();
+        menuTable.add(playButton)
+            .width(38f)
+            .height(32f)
+            .align(Align.left)
+            .padLeft(16f)
+            .padTop(4f)
+            .padBottom(4f)
+            .fill();
 
         menuTable.setBackground("menu_default_normal");
 
