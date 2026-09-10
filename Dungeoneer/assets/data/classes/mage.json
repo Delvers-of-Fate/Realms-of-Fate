@@ -1,0 +1,14 @@
+{
+    "id": "mage",
+    "displayName": "Mage",
+
+    "hp": 60,
+    "mp": 120,
+
+    "jumpHeight": 0.055,
+    "sprintSpeedMultiplier": 1.75,
+    "crouchSpeedMultiplier": 0.50,
+
+    "manaRegenerationEnabled": true,
+    "manaRegenRate": 0.10
+}

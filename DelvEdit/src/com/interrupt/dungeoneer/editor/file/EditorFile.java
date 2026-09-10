@@ -243,7 +243,7 @@ public class EditorFile {
             Editor.app.file = new EditorFile(new FileHandle("."));
         }
 
-        FilePicker picker = FilePicker.createLoadDialog("Open Level", EditorUi.getSmallSkin(), new FileHandle(Editor.app.file.directory()).child("assets").child("levels"));
+        FilePicker picker = FilePicker.createLoadDialog("Open Level", EditorUi.getSmallSkin(), new FileHandle(Editor.app.file.directory()));
         picker.setFileNameEnabled(true);
         picker.setNewFolderEnabled(false);
         if(Editor.app.file.name() != null) picker.setFileName(Editor.app.file.name());

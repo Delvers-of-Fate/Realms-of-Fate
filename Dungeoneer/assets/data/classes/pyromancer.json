@@ -1,0 +1,18 @@
+{
+    "id": "pyromancer",
+    "displayName": "Pyromancer",
+
+    "hp": 70,
+    "mp": 130,
+
+    "jumpHeight": 0.055,
+    "sprintSpeedMultiplier": 1.65,
+
+    "manaRegenerationEnabled": true,
+    "manaRegenRate": 0.10,
+
+    "resistances": {
+        "fire": 0.50,
+        "ice": -0.15
+    }
+}

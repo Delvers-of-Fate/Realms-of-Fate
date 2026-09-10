@@ -1,0 +1,13 @@
+{
+    "id": "warrior",
+    "displayName": "Warrior",
+    "hp": 100,
+    "mp": 20,
+
+    "jumpHeight": 0.055,
+    "sprintSpeedMultiplier": 1.2,
+    "crouchSpeedMultiplier": 0.50,
+
+    "manaRegenerationEnabled": false,
+    "manaRegenRate": 0.10
+}

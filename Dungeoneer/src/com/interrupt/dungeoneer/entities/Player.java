@@ -249,7 +249,11 @@ public class Player extends Actor {
     public boolean godMode = false;
 
     /** Selected class for the current run. */
-    public PlayerClass playerClass = PlayerClass.NONE;
+    public String playerClass = "";
+
+    /** Permanent elemental resistances supplied by the selected class. */
+    public HashMap<DamageType, Float> classResistances =
+        new HashMap<DamageType, Float>();
 
     /** Mana regeneration */
     public float manaRegenRate = 0.05f;
@@ -414,11 +418,16 @@ public class Player extends Actor {
     public float getElementalResistance(DamageType damageType) {
         float resistance = super.getElementalResistance(damageType);
 
+        // Class resistance
+        if(classResistances != null && classResistances.containsKey(damageType)) {
+            resistance += classResistances.get(damageType);
+        }
+
+        // Equipment resistance
         if(equippedItems != null) {
             for(Item item : equippedItems.values()) {
                 if(item instanceof Armor) {
                     Armor armor = (Armor)item;
-
                     resistance += armor.getResistance(damageType);
                 }
             }
