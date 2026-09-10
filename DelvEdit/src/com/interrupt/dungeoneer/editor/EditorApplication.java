@@ -90,18 +90,23 @@ public class EditorApplication implements ApplicationListener {
 	public GlRenderer renderer = null;
 	public EditorFile file = null;
 
+    private ShapeRenderer orientationRenderer;
+
 	public enum ControlPointType { floor, ceiling, northCeil, northFloor, eastCeil, eastFloor, southCeil, southFloor, westCeil, westFloor, vertex };
 	public enum ControlVertex { slopeNW, slopeNE, slopeSW, slopeSE, ceilNW, ceilNE, ceilSW, ceilSE }
 	public enum DragMode { NONE, XY, X, Y, Z }
 	public enum MoveMode { NONE, DRAG, ROTATE }
 
-	public Color controlPointColor = new Color(1f, 0.4f, 0f, 1f);
+    /** Modify the color of the points in Selection Box */
+    public Color controlPointColor = new Color(0.30f, 0.70f, 1.00f, 1f);
 
 	public Vector3 tempVec1 = new Vector3();
 	public Vector3 tempVec2 = new Vector3();
 	public Vector3 tempVec3 = new Vector3();
 	public Vector3 tempVec4 = new Vector3();
 	public Vector3 tempVec5 = new Vector3();
+
+    private boolean showGrid = true;
 
 	public int pickedWallTexture = 0;
 	public int pickedCeilingTexture = 1;
@@ -235,6 +240,13 @@ public class EditorApplication implements ApplicationListener {
     protected EntityManager entityManager;
     protected MonsterManager monsterManager;
 
+    private Label compassNorth;
+    private Label compassEast;
+    private Label compassSouth;
+    private Label compassWest;
+
+    private final Vector2 compassTemp = new Vector2();
+
 	Mesh cubeMesh;
     Mesh gridMesh;
 
@@ -295,8 +307,8 @@ public class EditorApplication implements ApplicationListener {
 
     private boolean showGizmos = false;
 
-	Color hoveredColor = new Color(0.5f, 1f, 0.5f, 1f);
-	Color selectedColor = new Color(1f, 0.5f, 0.5f, 1f);
+    Color hoveredColor = new Color(0.35f, 0.85f, 0.85f, 1f);
+    Color selectedColor = new Color(0.30f, 0.70f, 1.00f, 1f);
 
     Vector3 intersection = new Vector3();
 	Vector3 tempVector1 = new Vector3();
@@ -587,6 +599,8 @@ public class EditorApplication implements ApplicationListener {
 
         tick();
         draw();
+        //drawOrientationIndicator();
+        updateCompass();
 
 		renderer.clearLights();
 		renderer.clearDecals();
@@ -606,6 +620,76 @@ public class EditorApplication implements ApplicationListener {
 
         }
 	}
+
+    private void drawOrientationIndicator() {
+        if(player != null) {
+            return;
+        }
+
+        if(orientationRenderer == null) {
+            orientationRenderer = new ShapeRenderer();
+        }
+
+        float centerX = 58f;
+        float centerY = 58f;
+        float axisLength = 28f;
+
+        // Build camera-relative X and Z directions.
+        Vector3 right = tempVec3.set(camera.direction)
+            .crs(camera.up)
+            .nor();
+
+        Vector3 forward = tempVec4.set(camera.direction.x, 0f, camera.direction.z);
+
+        if(forward.len2() > 0.0001f) {
+            forward.nor();
+        }
+
+        // Orthographic screen-space projection.
+        orientationRenderer.setProjectionMatrix(
+            new Matrix4().setToOrtho2D(
+                0,
+                0,
+                Gdx.graphics.getWidth(),
+                Gdx.graphics.getHeight()
+            )
+        );
+
+        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+
+        orientationRenderer.begin(ShapeType.Line);
+
+        // X axis - red
+        orientationRenderer.setColor(0.85f, 0.28f, 0.28f, 1f);
+        orientationRenderer.line(
+            centerX,
+            centerY,
+            centerX + right.x * axisLength,
+            centerY + right.z * axisLength
+        );
+
+        // Z axis - green
+        orientationRenderer.setColor(0.28f, 0.75f, 0.38f, 1f);
+        orientationRenderer.line(
+            centerX,
+            centerY,
+            centerX + forward.x * axisLength,
+            centerY + forward.z * axisLength
+        );
+
+        // Vertical axis - blue
+        orientationRenderer.setColor(0.30f, 0.70f, 1.00f, 1f);
+        orientationRenderer.line(
+            centerX,
+            centerY,
+            centerX,
+            centerY + axisLength
+        );
+
+        orientationRenderer.end();
+
+        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+    }
 
 	Vector3 t_dragVector = new Vector3();
 	Vector3 t_dragVector2 = new Vector3();
@@ -759,7 +843,7 @@ public class EditorApplication implements ApplicationListener {
 
 		GlRenderer.EnableBlending(true);
 
-		if(gridMesh != null && player == null) {
+        if(gridMesh != null && player == null && showGrid) {
 			GlRenderer.worldShaderInfo.setAttributes(camera.combined,
 					0,
 					10,
@@ -894,7 +978,7 @@ public class EditorApplication implements ApplicationListener {
 
 			// Draw selection
 			if(shouldDrawBox) {
-				boxRenderer.setColor(0.75f, 0.75f, 0.75f, 0.5f);
+                boxRenderer.setColor(0.30f, 0.70f, 1.00f, 0.90f);
 				boxRenderer.begin(ShapeType.Line);
 
 				BoundingBox bounds = Editor.selection.tiles.getBounds();
@@ -1063,7 +1147,7 @@ public class EditorApplication implements ApplicationListener {
 				}
 
 				if(!movingControlPoint || pickedControlPoint == point)
-					drawPoint(point.point, 5f, pickedControlPoint == point ? Color.WHITE : controlPointColor);
+					drawPoint(point.point, 5f, pickedControlPoint == point ? new Color(1.00f, 0.58f, 0.16f, 1f) : controlPointColor);
 			}
 
 			// draw lines
@@ -1543,7 +1627,7 @@ public class EditorApplication implements ApplicationListener {
 
 		Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
 
-		if(player == null) {
+		if(player == null && showGrid) {
 			lineRenderer.begin(ShapeType.Line);
 			drawLine(xGridStart, xGridEnd, 2f, EditorColors.X_AXIS_DARK);
 			drawLine(yGridStart, yGridEnd, 2f, EditorColors.Y_AXIS_DARK);
@@ -2043,6 +2127,10 @@ public class EditorApplication implements ApplicationListener {
 			Editor.selection.clear();
 		}
 
+        if(Gdx.input.isKeyJustPressed(Keys.G)) {
+            showGrid = !showGrid;
+        }
+
 		// Try to pick an entity
 		if(pickedControlPoint == null && !tileDragging && !Gdx.input.isKeyPressed(Keys.TAB)) {
 			if(Gdx.input.getX() != lastInputX || Gdx.input.getY() != lastInputY) {
@@ -2481,6 +2569,8 @@ public class EditorApplication implements ApplicationListener {
             }
         });
 
+        setupCompass(stage);
+
         stage.addActor(wallPickerLayoutTable);
         ui.initUi();
 
@@ -2510,6 +2600,66 @@ public class EditorApplication implements ApplicationListener {
 
 		return v;
 	}
+
+    private void setupCompass(Stage stage) {
+        compassNorth = new Label("N", ui.getSmallSkin());
+        compassEast = new Label("E", ui.getSmallSkin());
+        compassSouth = new Label("S", ui.getSmallSkin());
+        compassWest = new Label("W", ui.getSmallSkin());
+
+        // North gets the editor accent.
+        compassNorth.setColor(0.30f, 0.70f, 1.00f, 1.00f);
+
+        // Other directions stay neutral.
+        compassEast.setColor(0.82f, 0.84f, 0.87f, 1f);
+        compassSouth.setColor(0.82f, 0.84f, 0.87f, 1f);
+        compassWest.setColor(0.82f, 0.84f, 0.87f, 1f);
+
+        stage.addActor(compassNorth);
+        stage.addActor(compassEast);
+        stage.addActor(compassSouth);
+        stage.addActor(compassWest);
+    }
+
+    private void updateCompass() {
+        if(compassNorth == null || player != null) {
+            return;
+        }
+
+        float centerX = 60f;
+        float centerY = 60f;
+        float radius = 25f;
+
+        float yaw = cameraController.getRotation().x;
+
+        updateCompassLabel(compassNorth, 0f, yaw, centerX, centerY, radius);
+        updateCompassLabel(compassEast, MathUtils.PI * 0.5f, yaw, centerX, centerY, radius);
+        updateCompassLabel(compassSouth, MathUtils.PI, yaw, centerX, centerY, radius);
+        updateCompassLabel(compassWest, MathUtils.PI * 1.5f, yaw, centerX, centerY, radius);
+    }
+
+    private void updateCompassLabel(
+        Label label,
+        float direction,
+        float yaw,
+        float centerX,
+        float centerY,
+        float radius) {
+
+        float angle = direction - yaw;
+
+        compassTemp.set(
+            MathUtils.sin(angle) * radius,
+            MathUtils.cos(angle) * radius
+        );
+
+        label.pack();
+
+        label.setPosition(
+            centerX + compassTemp.x - label.getWidth() * 0.5f,
+            centerY + compassTemp.y - label.getHeight() * 0.5f
+        );
+    }
 
 	public Mesh genCube () {
         Mesh mesh = new Mesh(true, 24, 36, new VertexAttribute(Usage.Position, 3, "a_position"), new VertexAttribute(Usage.Normal,
@@ -2694,7 +2844,7 @@ public class EditorApplication implements ApplicationListener {
 
         Decal sd = getDecal();
 		sd.setRotation(tempVector1.set(camera.direction.x, camera.direction.y, camera.direction.z).nor().scl(-1f), Vector3.Y);
-		sd.setScale((pos2.len() / camera.far) * (pos2.len() * 0.5f) + 1);
+        sd.setScale(((pos2.len() / camera.far) * (pos2.len() * 0.5f) + 1) * 0.85f);
 		sd.setTextureRegion(editorSprites[17]);
 		sd.setPosition(start.x, start.y, start.z);
 		sd.setColor(color.r, color.g, color.b, color.a);
