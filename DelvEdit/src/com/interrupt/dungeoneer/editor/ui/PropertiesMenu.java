@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.*;
 import com.badlogic.gdx.utils.*;
@@ -32,7 +33,11 @@ public class PropertiesMenu extends Table {
     public ArrayMap<String, Array<Field>> arrayMap = new ArrayMap<String, Array<Field>>();
     private HashMap<Field, Actor> fieldMap = new HashMap<Field, Actor>();
 
+    private static final Color EDITOR_PROPERTY_COLOR = new Color(0.30f, 0.70f, 1.00f, 1.00f);
+
     private static final Color PROPERTY_HEADER_COLOR = new Color(0.30f, 0.70f, 1.00f, 1.00f);
+
+    private static final ObjectMap<String, Boolean> collapsedGroups = new ObjectMap<String, Boolean>();
 
     private final Array<Entity> selectedEntities;
     private final Array<Class> classes;
@@ -110,9 +115,32 @@ public class PropertiesMenu extends Table {
                     if (!item.key.equals("Group") && !item.key.equals("General")) continue;
                 }
 
-                if(fields.size == 0) continue;
-                Label groupHeader = new Label(item.key.toUpperCase(), skin);
+                final String groupName = item.key;
+
+                if (!collapsedGroups.containsKey(groupName)) {
+                    collapsedGroups.put(groupName, false);
+                }
+
+                final Label groupHeader = new Label("", skin);
                 groupHeader.setColor(PROPERTY_HEADER_COLOR);
+
+                boolean collapsed = collapsedGroups.get(groupName);
+
+                groupHeader.setText(
+                    (collapsed ? "+  " : "-  ") + groupName.toUpperCase()
+                );
+
+                groupHeader.addListener(new ClickListener() {
+                    @Override
+                    public void clicked(InputEvent event, float x, float y) {
+                        boolean isCollapsed = collapsedGroups.get(groupName);
+
+                        collapsedGroups.put(groupName, !isCollapsed);
+
+                    // Rebuild this PropertiesMenu by asking the editor UI to refresh selection
+                        Editor.app.ui.showEntityPropertiesMenu(false);
+                    }
+                });
 
                 add(groupHeader)
                     .colspan(2)
@@ -124,6 +152,10 @@ public class PropertiesMenu extends Table {
                     .padBottom(7f);
 
                 row();
+
+                if (collapsedGroups.get(groupName)) {
+                    continue;
+                }
 
                 // loop through the fields in the group
                 for(final Field field : fields) {
@@ -141,8 +173,21 @@ public class PropertiesMenu extends Table {
                         setSelectedIn(sb, v);
                         sb.addListener(getSelectBoxListener(field));
 
-                        add(label).align(Align.left);
-                        add(sb).align(Align.left).fill();
+                        add(label)
+                            .width(160f)
+                            .align(Align.left)
+                            .padLeft(14f)
+                            .padRight(12f)
+                            .padTop(5f)
+                            .padBottom(5f);
+
+                        add(sb)
+                            .width(210f)
+                            .height(34f)
+                            .align(Align.left)
+                            .padRight(14f)
+                            .padTop(5f)
+                            .padBottom(5f);
 
                         fieldMap.put(field, sb);
                     }
@@ -181,8 +226,21 @@ public class PropertiesMenu extends Table {
                         TextField tf = new TextField(v, skin);
                         tf.setTextFieldListener(getTextFieldListener(field));
 
-                        add(label).align(Align.left);
-                        add(tf).align(Align.left).fill();
+                        add(label)
+                            .width(160f)
+                            .align(Align.left)
+                            .padLeft(14f)
+                            .padRight(12f)
+                            .padTop(5f)
+                            .padBottom(5f);
+
+                        add(tf)
+                            .width(210f)
+                            .height(34f)
+                            .align(Align.left)
+                            .padRight(14f)
+                            .padTop(5f)
+                            .padBottom(5f);
 
                         fieldMap.put(field, tf);
                     }
@@ -337,8 +395,21 @@ public class PropertiesMenu extends Table {
                             }
                         });
 
-                        add(label).align(Align.left);
-                        add(tf).align(Align.left).fill();
+                        add(label)
+                            .width(160f)
+                            .align(Align.left)
+                            .padLeft(14f)
+                            .padRight(12f)
+                            .padTop(5f)
+                            .padBottom(5f);
+
+                        add(tf)
+                            .width(210f)
+                            .height(34f)
+                            .align(Align.left)
+                            .padRight(14f)
+                            .padTop(5f)
+                            .padBottom(5f);
 
                         fieldMap.put(field, tf);
                     }
@@ -419,8 +490,21 @@ public class PropertiesMenu extends Table {
                             }
                         });
 
-                        add(label).align(Align.left);
-                        add(tf).align(Align.left).fill();
+                        add(label)
+                            .width(160f)
+                            .align(Align.left)
+                            .padLeft(14f)
+                            .padRight(12f)
+                            .padTop(5f)
+                            .padBottom(5f);
+
+                        add(tf)
+                            .width(210f)
+                            .height(34f)
+                            .align(Align.left)
+                            .padRight(14f)
+                            .padTop(5f)
+                            .padBottom(5f);
 
                         fieldMap.put(field, tf);
                     }
@@ -500,8 +584,21 @@ public class PropertiesMenu extends Table {
                         setSelectedIn(sb, v);
                         sb.addListener(getSelectBoxListener(field));
 
-                        add(label).align(Align.left);
-                        add(sb).align(Align.left).fill();
+                        add(label)
+                            .width(160f)
+                            .align(Align.left)
+                            .padLeft(14f)
+                            .padRight(12f)
+                            .padTop(5f)
+                            .padBottom(5f);
+
+                        add(sb)
+                            .width(210f)
+                            .height(34f)
+                            .align(Align.left)
+                            .padRight(14f)
+                            .padTop(5f)
+                            .padBottom(5f);
 
                         fieldMap.put(field, sb);
                     }
