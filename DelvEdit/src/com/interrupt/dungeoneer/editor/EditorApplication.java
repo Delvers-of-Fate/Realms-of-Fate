@@ -2578,16 +2578,34 @@ public class EditorApplication implements ApplicationListener {
         float[] vertices = new float[cubeVertArray.size + (cubeVertArray.size / 3) * 4];
         int i = 0;
         for (int pIdx = 0; pIdx < cubeVertArray.size;) {
-        		// vertex position
-                vertices[i++] = cubeVerts[pIdx++];
-                vertices[i++] = cubeVerts[pIdx++];
-                vertices[i++] = cubeVerts[pIdx++];
 
-				// vertex color
-				vertices[i++] = 0.3f;
-				vertices[i++] = 0.3f;
-				vertices[i++] = 0.3f;
-				vertices[i++] = 1f;
+            // Each grid line contains two vertices = 6 position floats.
+            int lineIndex = pIdx / 6;
+
+            // First set of lines runs in one direction.
+            // Second set runs perpendicular to them.
+            boolean majorLine;
+
+            if (lineIndex < width + 1) {
+                majorLine = (lineIndex % 4 == 0);
+            }
+            else {
+                int otherLineIndex = lineIndex - (width + 1);
+                majorLine = (otherLineIndex % 4 == 0);
+            }
+            /** Change the values here to control the grid line brightness */
+            float gridBrightness = majorLine ? 0.27f : 0.22f;
+
+            // Vertex position
+            vertices[i++] = cubeVerts[pIdx++];
+            vertices[i++] = cubeVerts[pIdx++];
+            vertices[i++] = cubeVerts[pIdx++];
+
+            // Vertex color
+            vertices[i++] = gridBrightness;
+            vertices[i++] = gridBrightness;
+            vertices[i++] = gridBrightness;
+            vertices[i++] = 1f;
         }
 
         short[] indices = new short[cubeVertArray.size];

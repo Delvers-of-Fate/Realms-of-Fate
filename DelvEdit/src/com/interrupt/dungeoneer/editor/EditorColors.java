@@ -11,7 +11,7 @@ public class EditorColors {
     public static final Color Y_AXIS = Color.GREEN;
     public static final Color Z_AXIS = Color.BLUE;
 
-    public static final Color X_AXIS_DARK = new Color(0.8f, 0f, 0f, 0.3f);
-    public static final Color Y_AXIS_DARK = new Color(0f, 0.8f, 0f, 0.3f);
+    public static final Color X_AXIS_DARK = new Color(0.55f, 0.22f, 0.22f, 1);
+    public static final Color Y_AXIS_DARK = new Color(0.22f, 0.55f, 0.28f, 1f);
     public static final Color Z_AXIS_DARK = new Color(0f, 0f, 0.8f, 0.3f);
 }
