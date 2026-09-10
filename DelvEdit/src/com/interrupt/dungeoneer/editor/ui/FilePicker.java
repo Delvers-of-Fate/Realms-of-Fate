@@ -24,6 +24,14 @@ import java.util.Comparator;
 
 public class FilePicker extends Dialog {
 
+    private static final Color EDITOR_ACCENT_COLOR =
+        new Color(0.30f, 0.70f, 1.00f, 1.00f);
+
+    private String lastClickedEntry = null;
+    private long lastClickTime = 0L;
+
+    private static final long DOUBLE_CLICK_TIME_MS = 350L;
+
     public interface ResultListener {
         boolean result(boolean success, FileHandle result);
     }
@@ -87,13 +95,14 @@ public class FilePicker extends Dialog {
 
         fileListLabel = new Label("", skin);
         fileListLabel.setAlignment(Align.left);
+        fileListLabel.setColor(EDITOR_ACCENT_COLOR);
 
         fileList = new List(skin);
         fileList.setItems(currentDir.list());
 
         fileNameInput = new TextField("", skin);
         fileNameLabel = new Label("File name", skin);
-        fileNameLabel.setColor(Color.GRAY);
+        fileNameLabel.setColor(0.82f, 0.84f, 0.87f, 1f);
         fileNameInput.setTextFieldListener(new TextFieldListener() {
             @Override
             public void keyTyped(TextField textField, char c) {
@@ -159,8 +168,7 @@ public class FilePicker extends Dialog {
 
     private void changeDirectory(FileHandle directory) {
         currentDir = directory;
-        String title = currentDir.path();
-        if (title.length() > 38) title = "..." + title.substring(title.length() - 38, title.length());
+        String title = currentDir.file().getAbsolutePath();
         fileListLabel.setText(title);
 
         final Array<FileListItem> items = new Array<FileListItem>();
@@ -276,7 +284,16 @@ public class FilePicker extends Dialog {
     @Override
     public Dialog show(Stage stage) {
         final Table content = getContentTable();
-        content.add(fileListLabel).colspan(2).top().left().expandX().fillX().row();
+        content.add(fileListLabel)
+            .colspan(2)
+            .left()
+            .expandX()
+            .fillX()
+            .padLeft(14f)
+            .padRight(14f)
+            .padTop(12f)
+            .padBottom(10f)
+            .row();
 
         ScrollPane pane = new ScrollPane(fileList, skin);
         pane.addListener(new InputListener() {
@@ -295,49 +312,93 @@ public class FilePicker extends Dialog {
             }
         });
 
-        content.add(pane).size(300, 350).colspan(2).fill().expand().row();
+        content.add(pane)
+            .width(520f)
+            .height(420f)
+            .colspan(2)
+            .fill()
+            .expand()
+            .padLeft(14f)
+            .padRight(14f)
+            .padBottom(10f)
+            .row();
 
         if (legacyFormatDisplayToggleEnabled) {
-            content.add(legacyFormatDisplayToggle).left().colspan(2).row();
+            content.add(legacyFormatDisplayToggle)
+                .left()
+                .colspan(2)
+                .padLeft(14f)
+                .padRight(14f)
+                .padTop(4f)
+                .padBottom(10f)
+                .row();
         }
 
         if (fileNameEnabled) {
-            content.add(fileNameLabel);
-            content.add(fileNameInput).fillX().expandX().row();
+            content.add(fileNameLabel)
+                .left()
+                .width(100f)
+                .padLeft(14f)
+                .padBottom(10f);
 
-            stage.setKeyboardFocus(fileNameInput);
-        }
-
-        if (newFolderEnabled) {
-            content.add(newFolderButton).fillX().expandX().row();
+            content.add(fileNameInput)
+                .fillX()
+                .expandX()
+                .height(34f)
+                .padRight(14f)
+                .padBottom(10f)
+                .row();
         }
 
         if(directoryBrowsingEnabled){
             fileList.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
-                    FileHandle[] items = currentDir.list();
-                    FileHandle selected = null;
 
-                    String selection = ((FileListItem)fileList.getSelected()).toString();
-
-                    if(selection.equals("../")) {
-                        FileHandle fh = new FileHandle(currentDir.file().getAbsolutePath());
-                        changeDirectory(fh.parent());
+                    if (getTapCount() < 1) {
+                        return;
                     }
-                    else {
 
-                        String selectedName = selection.toString().replace("/", "");
+                    FileListItem selectedItem = (FileListItem) fileList.getSelected();
 
-                        for(int i = 0; i < items.length; i++) {
-                            String fh = items[i].file().getName();
-                            if(fh.equals(selectedName)) {
-                                selected = items[i];
-                            }
+                    if (selectedItem == null) {
+                        return;
+                    }
+
+                    String selection = selectedItem.toString();
+                    // Only treat it as a double-click if both clicks were
+                    // on the exact same file/folder entry.
+                    if (getTapCount() < 2 || !selection.equals(lastClickedEntry)) {
+                        lastClickedEntry = selection;
+                        return;
+                    }
+
+                    // Successful double-click. Reset so the next rapid click
+                    // cannot accidentally open another highlighted entry.
+                    lastClickedEntry = null;
+
+                    if (selection.equals("../")) {
+                        FileHandle parent = currentDir.parent();
+
+                        if (parent != null) {
+                            changeDirectory(parent);
                         }
 
-                        if (selected != null && selected.isDirectory()) {
-                            changeDirectory(selected);
+                        return;
+                    }
+
+                    FileHandle[] items = currentDir.list();
+
+                    String selectedName = selection.replace("/", "");
+
+                    for (FileHandle item : items) {
+                        if (item.name().equals(selectedName)) {
+
+                            if (item.isDirectory()) {
+                                changeDirectory(item);
+                            }
+
+                            break;
                         }
                     }
                 }

@@ -118,7 +118,7 @@ public class PropertiesMenu extends Table {
                 final String groupName = item.key;
 
                 if (!collapsedGroups.containsKey(groupName)) {
-                    collapsedGroups.put(groupName, false);
+                    collapsedGroups.put(groupName, true);
                 }
 
                 final Label groupHeader = new Label("", skin);

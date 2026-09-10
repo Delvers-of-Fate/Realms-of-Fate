@@ -91,7 +91,7 @@ public class EditorFile {
 
         FileFilter wsFilter = new WSFilter();
 
-        FilePicker picker = FilePicker.createSaveDialog("Save Level", EditorUi.getSmallSkin(), new FileHandle(Editor.app.file.directory()));
+        FilePicker picker = FilePicker.createSaveDialog("Save Level", EditorUi.getSmallSkin(), new FileHandle(Editor.app.file.directory()).child("assets").child("levels"));
         picker.setFileNameEnabled(true);
         picker.setNewFolderEnabled(false);
         picker.setFilter(wsFilter);
@@ -243,7 +243,7 @@ public class EditorFile {
             Editor.app.file = new EditorFile(new FileHandle("."));
         }
 
-        FilePicker picker = FilePicker.createLoadDialog("Open Level", EditorUi.getSmallSkin(), new FileHandle(Editor.app.file.directory()));
+        FilePicker picker = FilePicker.createLoadDialog("Open Level", EditorUi.getSmallSkin(), new FileHandle(Editor.app.file.directory()).child("assets").child("levels"));
         picker.setFileNameEnabled(true);
         picker.setNewFolderEnabled(false);
         if(Editor.app.file.name() != null) picker.setFileName(Editor.app.file.name());
