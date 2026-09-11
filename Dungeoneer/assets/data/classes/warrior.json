@@ -1,13 +1,32 @@
 {
-    "id": "warrior",
-    "displayName": "Warrior",
-    "hp": 100,
+    "id": "fighter",
+    "displayName": "Fighter",
+
+    "hp": 120,
     "mp": 20,
 
-    "jumpHeight": 0.055,
-    "sprintSpeedMultiplier": 1.2,
-    "crouchSpeedMultiplier": 0.50,
+    "atk": 10,
+    "def": 11,
+    "dex": 12,
+    "spd": 13,
+    "mag": 14,
+    "end": 15,
+
+    "jumpHeight": 0.05,
+    "sprintSpeedMultiplier": 1.65,
+    "crouchSpeedMultiplier": 0.45,
 
     "manaRegenerationEnabled": false,
-    "manaRegenRate": 0.10
+    "manaRegenRate": 0.05,
+
+
+    "resistances": {
+        "FIRE": 0.10
+    },
+
+    "startingItems": [
+        "Red Potion",
+        "Red Potion",
+        "Red Potion"
+    ]
 }

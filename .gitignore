@@ -38,3 +38,9 @@ build/
 ## VS Code
 .vscode/*
 !/.vscode/launch.json
+
+# Realms of Fate Discord bot private data
+DiscordBot/runtime/
+DiscordBot/.env
+DiscordBot/bot_token.txt
+DiscordBot/runtime/

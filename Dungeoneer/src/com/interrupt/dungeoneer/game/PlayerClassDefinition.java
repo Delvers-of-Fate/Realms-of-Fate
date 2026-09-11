@@ -10,6 +10,13 @@ public class PlayerClassDefinition {
     public int hp = 8;
     public int mp = 20;
 
+    public int atk = 4;
+    public int def = 4;
+    public int dex = 4;
+    public int spd = 4;
+    public int mag = 4;
+    public int end = 4;
+
     public float jumpHeight = 0.05f;
 
     public float sprintSpeedMultiplier = 1.65f;
@@ -17,6 +24,8 @@ public class PlayerClassDefinition {
 
     public boolean manaRegenerationEnabled = false;
     public float manaRegenRate = 0.05f;
+
+    public String[] startingItems = new String[0];
 
     public PlayerClassDefinition() { }
 

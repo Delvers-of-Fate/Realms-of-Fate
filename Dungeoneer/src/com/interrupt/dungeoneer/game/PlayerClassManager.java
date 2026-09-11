@@ -5,6 +5,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.interrupt.dungeoneer.entities.Player;
 import com.interrupt.utils.JsonUtil;
+import com.interrupt.dungeoneer.entities.Item;
 
 import java.util.Map;
 
@@ -137,6 +138,53 @@ public class PlayerClassManager {
             Math.max(0, definition.mp),
             true
         );
+
+        // Base class stats
+        player.stats.ATK = definition.atk;
+        player.stats.DEF = definition.def;
+        player.stats.DEX = definition.dex;
+        player.stats.SPD = definition.spd;
+        player.stats.MAG = definition.mag;
+        player.stats.END = definition.end;
+
+        // Give starting inventory items
+        if(definition.startingItems != null) {
+
+            for(String itemName : definition.startingItems) {
+
+                if(itemName == null || itemName.trim().isEmpty()) {
+                    continue;
+                }
+
+                Item item = Game.GetItemManager().FindItem(
+                    itemName.trim(),
+                    Item.ItemCondition.normal
+                );
+
+                if(item != null) {
+
+                    player.addToInventory(item);
+
+                    Gdx.app.log(
+                        "PlayerClasses",
+                        "Gave starting item '"
+                            + itemName
+                            + "' to class "
+                            + definition.id
+                    );
+                }
+                else {
+
+                    Gdx.app.error(
+                        "PlayerClasses",
+                        "Could not find starting item '"
+                            + itemName
+                            + "' for class "
+                            + definition.id
+                    );
+                }
+            }
+        }
 
         player.jumpHeight = definition.jumpHeight;
 

@@ -1,0 +1,19 @@
+apply plugin: "java"
+apply plugin: "application"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+mainClassName = "com.realmsoffate.discord.BotMain"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "net.dv8tion:JDA:5.6.1"
+    implementation "com.google.code.gson:gson:2.13.1"
+}
+
+
+// MTU0NzcxMDczODA5MTQ3OTEyMA.G177u-.TlWe5oABNuJlfo95W9tCT63482CV_fBDBpZ7O8
