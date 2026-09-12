@@ -13,13 +13,26 @@ public class BotState {
         public String name;
         public boolean active = false;
 
+        public Objectives objectives = new Objectives();
+        public String rewardKey;
+        public String rewardName;
+        public String description;
+
+        public int kills = 0;
+        public int floorsCleared = 0;
         public int championSlots = 5;
 
-        public int wins = 0;
-        public int deaths = 0;
+        //public int wins = 0;
+        //public int deaths = 0;
 
         public List<ChampionData> champions =
             new ArrayList<ChampionData>();
+    }
+
+
+    public static class Objectives {
+        public int kills = 0;
+        public int floorsCleared = 0;
     }
 
     public static class ChampionData {

@@ -413,6 +413,8 @@ public class EditorRightClickEntitiesMenu extends Scene2dMenu {
 		baseEntity.add(new Trigger());
 		baseEntity.add(new ProgressionTrigger());
         baseEntity.add(new ClassSelector());
+        baseEntity.add(new CampChest());
+        baseEntity.add(new Portal());
 		baseEntity.add(new ParticleEmitter());
 		baseEntity.add(new DynamicLight());
 		baseEntity.add(new AmbientSound());

@@ -41,6 +41,8 @@ import com.interrupt.utils.JsonUtil;
 import com.interrupt.utils.Logger;
 import com.interrupt.utils.OSUtils;
 
+import com.interrupt.dungeoneer.community.RofProfileManager;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -1457,14 +1459,24 @@ public class Game {
 		return saveLoc;
 	}
 
-	public static void init() {
-		initGamepadManager();
+    public static void init() {
 
-		// Load the base game data
-		if(gameData == null) {
-			gameData = modManager.loadGameData();
-		}
-	}
+        System.out.println(
+            "========== REALMS OF FATE PROFILE INIT =========="
+        );
+
+        initGamepadManager();
+
+        // Load the base game data
+        if(gameData == null) {
+            gameData = modManager.loadGameData();
+        }
+
+        // Initialize the persistent Realms of Fate
+        // community profile.
+        RofProfileManager.initialize();
+        RofProfileManager.printProfileLocation();
+    }
 
 	public static void quitEditorPreview() {
 		// TODO Auto-generated method stub

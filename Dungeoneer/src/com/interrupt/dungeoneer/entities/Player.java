@@ -1182,6 +1182,8 @@ public class Player extends Actor {
 				}
 				else if(centered instanceof Stairs) Game.ShowUseMessage(MessageFormat.format(StringManager.get("entities.Player.useText"), useText, ((Stairs) (centered)).getUseText()));
 				else if(centered instanceof Door) Game.ShowUseMessage(MessageFormat.format(StringManager.get("entities.Player.useText"), useText, ((Door)centered).getUseText()));
+                else if(centered instanceof CampChest) {Game.ShowUseMessage(MessageFormat.format(StringManager.get("entities.Player.useText"), useText, "Open"));
+                }
 				else if(centered instanceof ButtonModel) Game.ShowUseMessage(MessageFormat.format(StringManager.get("entities.Player.useText"), useText, ((ButtonModel)centered).useVerb));
 				else if(centered instanceof Actor && ((Actor)centered).getUseTrigger() != null) Game.ShowUseMessage(MessageFormat.format(StringManager.get("entities.Player.useText"), useText, ((Actor)centered).getUseTrigger().useVerb));
 			}

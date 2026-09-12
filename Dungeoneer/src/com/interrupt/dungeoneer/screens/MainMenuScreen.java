@@ -20,6 +20,7 @@ import com.interrupt.dungeoneer.GameManager;
 import com.interrupt.dungeoneer.game.Game;
 import com.interrupt.dungeoneer.overlays.ModsOverlay;
 import com.interrupt.dungeoneer.overlays.OptionsOverlay;
+import com.interrupt.dungeoneer.profile.ProfileManager;
 import com.interrupt.managers.StringManager;
 
 public class MainMenuScreen extends BaseScreen {
@@ -29,6 +30,7 @@ public class MainMenuScreen extends BaseScreen {
 
     private TextButton playButton;
     private TextButton profileButton;
+    private TextButton portalButton;
     private TextButton optionsButton;
     private TextButton modsButton;
     private TextButton quitButton;
@@ -74,6 +76,7 @@ public class MainMenuScreen extends BaseScreen {
         profileLabel.setColor(Color.LIGHT_GRAY);
 
         playButton = new TextButton(" PLAY ", skin);
+        portalButton = new TextButton(" PORTAL TEST ", skin);
         profileButton = new TextButton(" PROFILE ", skin);
         optionsButton = new TextButton(" OPTIONS ", skin);
         modsButton = new TextButton(" MODS ", skin);
@@ -87,15 +90,34 @@ public class MainMenuScreen extends BaseScreen {
             }
         });
 
+        portalButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+
+                System.out.println("PORTAL TEST CLICKED");
+
+                Audio.playSound(
+                    "/ui/ui_button_click.mp3",
+                    0.3f
+                );
+
+                GameApplication.SetScreen(
+                    new PortalScreen(null)
+                );
+            }
+        });
+
         profileButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                Audio.playSound("/ui/ui_button_click.mp3", 0.3f);
 
-                // Placeholder for the profile screen.
-                Gdx.app.log(
-                    "Profile",
-                    "Profile screen not implemented yet."
+                Audio.playSound(
+                    "/ui/ui_button_click.mp3",
+                    0.3f
+                );
+
+                GameApplication.SetScreen(
+                    new ProfileScreen()
                 );
             }
         });
@@ -147,6 +169,7 @@ public class MainMenuScreen extends BaseScreen {
         menuTable.row();
 
         addMenuButton(playButton);
+        addMenuButton(portalButton);
         addMenuButton(profileButton);
         addMenuButton(optionsButton);
 
@@ -239,6 +262,16 @@ public class MainMenuScreen extends BaseScreen {
 
         if(Game.instance != null) {
             Game.instance.clearMemory();
+        }
+
+        ProfileManager.load();
+
+        if(ProfileManager.getStashAmount("Health Potion") == 0) {
+
+            ProfileManager.addToStash(
+                "Health Potion",
+                3
+            );
         }
 
         makeContent();
