@@ -101,6 +101,23 @@ public class BotMain extends ListenerAdapter {
                     ),
 
                     Commands.slash(
+                            "profile",
+                            "Manage your Realms of Fate community profile."
+                        )
+                        .addSubcommands(
+                            new SubcommandData(
+                                "sync",
+                                "Sync your Realms of Fate profile with the community."
+                            )
+                                .addOption(
+                                    OptionType.ATTACHMENT,
+                                    "file",
+                                    "Your player.rofprofile file.",
+                                    true
+                                )
+                        ),
+
+                    Commands.slash(
                             "event",
                             "Realms of Fate community event commands."
                         )
@@ -343,6 +360,20 @@ public class BotMain extends ListenerAdapter {
         if(event.getName().equals("events")) {
 
             showActiveEvents(event);
+
+            return;
+        }
+
+        if(event.getName().equals("profile")) {
+
+            if("sync".equals(
+                event.getSubcommandName()
+            )) {
+
+                ProfileSyncHandler.handle(
+                    event
+                );
+            }
 
             return;
         }

@@ -42,6 +42,8 @@ import com.interrupt.utils.Logger;
 import com.interrupt.utils.OSUtils;
 
 import com.interrupt.dungeoneer.community.RofProfileManager;
+import com.interrupt.dungeoneer.community.CommunitySyncManager;
+
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -1462,7 +1464,7 @@ public class Game {
     public static void init() {
 
         System.out.println(
-            "========== REALMS OF FATE PROFILE INIT =========="
+            "========== REALMS OF FATE INIT =========="
         );
 
         initGamepadManager();
@@ -1472,10 +1474,14 @@ public class Game {
             gameData = modManager.loadGameData();
         }
 
-        // Initialize the persistent Realms of Fate
-        // community profile.
+        // Load the player's persistent
+        // Realms of Fate community profile.
         RofProfileManager.initialize();
         RofProfileManager.printProfileLocation();
+
+        // Download the current global
+        // Realms of Fate community state.
+        CommunitySyncManager.initialize();
     }
 
 	public static void quitEditorPreview() {

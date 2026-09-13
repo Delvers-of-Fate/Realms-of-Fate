@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "profile": {
-    "communityId": "KEEP-YOUR-EXISTING-COMMUNITY-ID-HERE",
+    "communityId": "test-player-001",
     "createdAt": 1789230000000,
     "lastUpdatedAt": 1789230000000
   },
@@ -10,7 +10,7 @@
       "blackstone_fortress": {
         "startedAt": 1789230000000,
         "progress": {
-          "kills": 30,
+          "kills": 70,
           "floorsCleared": 0
         }
       }

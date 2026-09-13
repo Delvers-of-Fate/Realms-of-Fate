@@ -16,84 +16,184 @@ public class StateStore {
         new File("DiscordBot/runtime");
 
     private static final File STATE_FILE =
-        new File(RUNTIME_DIR, "bot_state.json");
+        new File(
+            RUNTIME_DIR,
+            "bot_state.json"
+        );
 
     private static final Gson GSON =
         new GsonBuilder()
             .setPrettyPrinting()
             .create();
 
+
     public static synchronized BotState load() {
 
         ensureRuntimeDirectory();
 
         if(!STATE_FILE.exists()) {
-            BotState state = new BotState();
+
+            BotState state =
+                new BotState();
+
             save(state);
+
             return state;
         }
 
         try {
+
             InputStreamReader reader =
                 new InputStreamReader(
-                    new FileInputStream(STATE_FILE),
+                    new FileInputStream(
+                        STATE_FILE
+                    ),
                     StandardCharsets.UTF_8
                 );
 
             BotState state =
-                GSON.fromJson(reader, BotState.class);
+                GSON.fromJson(
+                    reader,
+                    BotState.class
+                );
 
             reader.close();
 
             if(state == null) {
-                state = new BotState();
+
+                state =
+                    new BotState();
             }
 
-            if(state.events == null) {
-                state.events =
-                    new java.util.ArrayList<BotState.EventData>();
-            }
-
-            if(state.claims == null) {
-                state.claims =
-                    new java.util.ArrayList<BotState.ClaimData>();
-            }
+            repairState(state);
 
             return state;
         }
-        catch(Exception e) {
+        catch(Exception exception) {
+
             System.err.println(
                 "Failed to load bot_state.json"
             );
-            e.printStackTrace();
 
-            return new BotState();
+            exception.printStackTrace();
+
+            BotState state =
+                new BotState();
+
+            repairState(state);
+
+            return state;
         }
     }
 
-    public static synchronized void save(BotState state) {
+
+    public static synchronized void save(
+        BotState state
+    ) {
 
         ensureRuntimeDirectory();
 
+        if(state == null) {
+
+            state =
+                new BotState();
+        }
+
+        repairState(state);
+
         try {
+
             OutputStreamWriter writer =
                 new OutputStreamWriter(
-                    new FileOutputStream(STATE_FILE),
+                    new FileOutputStream(
+                        STATE_FILE
+                    ),
                     StandardCharsets.UTF_8
                 );
 
-            GSON.toJson(state, writer);
+            GSON.toJson(
+                state,
+                writer
+            );
 
             writer.flush();
+
             writer.close();
         }
-        catch(Exception e) {
+        catch(Exception exception) {
+
             System.err.println(
                 "Failed to save bot_state.json"
             );
-            e.printStackTrace();
+
+            exception.printStackTrace();
         }
     }
+
+
+    private static void repairState(
+        BotState state
+    ) {
+
+        if(state.events == null) {
+
+            state.events =
+                new java.util.ArrayList<
+                    BotState.EventData
+                    >();
+        }
+
+        if(state.claims == null) {
+
+            state.claims =
+                new java.util.ArrayList<
+                    BotState.ClaimData
+                    >();
+        }
+
+        if(state.profiles == null) {
+
+            state.profiles =
+                new java.util.ArrayList<
+                    BotState.ProfileData
+                    >();
+        }
+
+
+        for(BotState.EventData event :
+            state.events) {
+
+            if(event == null) {
+                continue;
+            }
+
+            if(event.champions == null) {
+
+                event.champions =
+                    new java.util.ArrayList<
+                        BotState.ChampionData
+                        >();
+            }
+        }
+
+
+        for(BotState.ProfileData profile :
+            state.profiles) {
+
+            if(profile == null) {
+                continue;
+            }
+
+            if(profile.events == null) {
+
+                profile.events =
+                    new java.util.ArrayList<
+                        BotState.AcceptedEventProgress
+                        >();
+            }
+        }
+    }
+
 
     private static void ensureRuntimeDirectory() {
 
@@ -102,7 +202,9 @@ public class StateStore {
             boolean created =
                 RUNTIME_DIR.mkdirs();
 
-            if(!created && !RUNTIME_DIR.exists()) {
+            if(!created &&
+                !RUNTIME_DIR.exists()) {
+
                 System.err.println(
                     "Could not create bot runtime directory."
                 );
