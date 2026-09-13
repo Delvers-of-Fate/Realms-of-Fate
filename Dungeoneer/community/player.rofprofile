@@ -1,30 +1,11 @@
 {
-  "formatVersion": 1,
-  "profile": {
-    "communityId": "KEEP-YOUR-EXISTING-COMMUNITY-ID-HERE",
-    "createdAt": 1789230000000,
-    "lastUpdatedAt": 1789230000000
-  },
-  "events": {
-    "active": {
-      "blackstone_fortress": {
-        "startedAt": 1789230000000,
-        "progress": {
-          "kills": 30,
-          "floorsCleared": 0
-        }
-      }
-    },
-    "completed": {}
-  },
-  "quests": {
-    "active": {},
-    "completed": {}
-  },
-  "achievements": {
-    "unlocked": {}
-  },
-  "rewards": {
-    "claimed": {}
-  }
+"profile": {
+	"communityId": "e9933754-3965-4769-aafc-78f2e79bb681",
+	"createdAt": 1789304980490,
+	"lastUpdatedAt": 1789304980491
+},
+"events": {},
+"quests": {},
+"achievements": {},
+"rewards": {}
 }

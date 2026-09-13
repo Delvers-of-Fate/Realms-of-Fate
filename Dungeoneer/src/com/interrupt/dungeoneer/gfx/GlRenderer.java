@@ -187,6 +187,16 @@ public class GlRenderer {
 
 	protected int lastDrawnKeys = 0;
 
+    /** Idle breathing */
+    protected float idleBreathTime = 0f;
+    protected float idleBreathStrength = 0f;
+    protected float idleBreath = 0f;
+
+    /** Breathing tuning */
+    protected static final float IDLE_BREATH_SPEED = 1.0f;
+    protected static final float IDLE_CAMERA_AMOUNT = 0.002f;
+    protected static final float IDLE_WEAPON_AMOUNT = 0.008f;
+
 	protected Vector2 cameraBob = new Vector2();
 	protected Vector3 forwardDirection = new Vector3();
 	protected Vector3 rightDirection = new Vector3();
@@ -437,9 +447,36 @@ public class GlRenderer {
 
 	public void render(Game game) {
 
-		time += Gdx.graphics.getDeltaTime();
+        float delta = Gdx.graphics.getDeltaTime();
 
 		boolean inCutscene = cutsceneCamera != null && cutsceneCamera.isActive;
+
+        // ---------------------------------------------------------
+        // Idle breathing
+        // ---------------------------------------------------------
+        float horizontalSpeedSquared =
+            game.player.xa * game.player.xa +
+                game.player.ya * game.player.ya;
+
+        boolean playerIdle =
+            horizontalSpeedSquared < 0.0005f &&
+                Math.abs(game.player.za) < 0.01f &&
+                !game.player.isDead;
+
+        float targetBreathStrength = playerIdle ? 1f : 0f;
+
+        // Smoothly fade breathing in / out instead of snapping.
+        idleBreathStrength = MathUtils.lerp(
+            idleBreathStrength,
+            targetBreathStrength,
+            Math.min(1f, delta * 4f)
+        );
+
+        idleBreathTime += delta * IDLE_BREATH_SPEED;
+
+        idleBreath =
+            MathUtils.sin(idleBreathTime) *
+                idleBreathStrength;
 
 		this.game = game;
 		if(game != null) {
@@ -468,8 +505,11 @@ public class GlRenderer {
 		yPos = game.player.y;
 		zPos = game.player.z + game.player.getStepUpValue() + game.player.eyeHeight;
 
-		if(Options.instance.headBobEnabled) {
-		    zPos += game.player.headbob;
+        if(Options.instance.headBobEnabled) {
+            zPos += game.player.headbob;
+
+            /** Subtle idle breathing movement */
+            zPos += idleBreath * IDLE_CAMERA_AMOUNT;
         }
 
 		rot = game.player.rot;
@@ -2055,6 +2095,9 @@ public class GlRenderer {
 		// hand bob
 		cameraBob.set(game.player.xa, game.player.ya);
 		transform.y -= game.player.headbob * 0.55f;
+
+        /** Idle breathing */
+        transform.y += idleBreath * IDLE_WEAPON_AMOUNT;
 
 		// item transition
 		if(game.player.doingHeldItemTransition) {
