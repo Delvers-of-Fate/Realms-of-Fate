@@ -78,6 +78,14 @@ public class Wand extends Weapon {
     @Override
     public void doAttack(Player p, Level lvl, float attackPower) {
 
+        boolean isChargedCast = spell != null
+            && spell.canCharge
+            && attackPower >= 1.0f;
+
+        spell.isChargedCast = isChargedCast;
+
+        int manaCost = spell.getCastManaCost();
+
         if(autoFire) {
             p.handAnimateTimer = autoFireTime * 3f;
         }
@@ -90,8 +98,9 @@ public class Wand extends Weapon {
 
         // Check whether this wand has enough resources to fire.
         if(usesMana) {
-            if(p.mp < spell.mpCost) {
+            if(p.mp < manaCost) {
                 Audio.playSound("ui/ui_noammo_wand.mp3", 0.3f);
+                spell.isChargedCast = false;
                 return;
             }
         }
@@ -104,7 +113,7 @@ public class Wand extends Weapon {
 
         // Consume the appropriate resource.
         if(usesMana) {
-            p.mp -= spell.mpCost;
+            p.mp -= manaCost;
 
             if(p.mp < 0) {
                 p.mp = 0;
@@ -131,6 +140,8 @@ public class Wand extends Weapon {
             )
         );
 
+        spell.isChargedCast = false;
+
         p.history.usedWand(this);
 
         if(autoFire)
@@ -148,6 +159,20 @@ public class Wand extends Weapon {
 		}
 		return super.getRandDamage() + boost;
 	}
+
+    @Override
+    public float getChargeSpeed() {
+        if(spell != null && spell.canCharge && spell.maxChargeTime > 0f) {
+            // Player.attackChargeTime is 40 and gameplay ticks at a
+            // 60-units-per-second scale.
+            //
+            // This converts maxChargeTime (seconds) into the charge speed
+            // expected by Delver's existing attack charging system.
+            return 40f / (spell.maxChargeTime * 60f);
+        }
+
+        return super.getChargeSpeed();
+    }
 
     public boolean canFire(Player p) {
 
