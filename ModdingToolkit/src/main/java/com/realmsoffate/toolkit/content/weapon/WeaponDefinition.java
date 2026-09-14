@@ -2,30 +2,33 @@ package com.realmsoffate.toolkit.content.weapon;
 
 import com.badlogic.gdx.utils.JsonValue;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class WeaponDefinition {
 
-    /*
-     * Friendly fields understood directly by the toolkit.
-     */
     private String className;
     private String name;
-
     private String itemType;
 
     private int tex = 0;
     private String texAtlas;
 
     /*
-     * IMPORTANT:
+     * Properties that existed in the original JSON,
+     * or were deliberately set through the toolkit.
      *
-     * Any JSON fields that the toolkit does not understand yet
-     * are kept here.
-     *
-     * This prevents the toolkit from destroying mod data when
-     * loading and saving files containing custom or future fields.
+     * This prevents the toolkit from filling saved files
+     * with dozens of unused default values.
+     */
+    private final Set<String> presentProperties =
+        new HashSet<String>();
+
+    /*
+     * Anything the toolkit does not have a dedicated
+     * typed field for is preserved here.
      */
     private final Map<String, JsonValue> extraProperties =
         new LinkedHashMap<String, JsonValue>();
@@ -40,7 +43,13 @@ public class WeaponDefinition {
     public void setClassName(
         String className
     ) {
-        this.className = className;
+
+        this.className =
+            className;
+
+        markPropertyPresent(
+            "class"
+        );
     }
 
     public String getName() {
@@ -50,7 +59,13 @@ public class WeaponDefinition {
     public void setName(
         String name
     ) {
-        this.name = name;
+
+        this.name =
+            name;
+
+        markPropertyPresent(
+            "name"
+        );
     }
 
     public String getItemType() {
@@ -60,7 +75,13 @@ public class WeaponDefinition {
     public void setItemType(
         String itemType
     ) {
-        this.itemType = itemType;
+
+        this.itemType =
+            itemType;
+
+        markPropertyPresent(
+            "itemType"
+        );
     }
 
     public int getTex() {
@@ -70,7 +91,13 @@ public class WeaponDefinition {
     public void setTex(
         int tex
     ) {
-        this.tex = tex;
+
+        this.tex =
+            tex;
+
+        markPropertyPresent(
+            "tex"
+        );
     }
 
     public String getTexAtlas() {
@@ -80,7 +107,13 @@ public class WeaponDefinition {
     public void setTexAtlas(
         String texAtlas
     ) {
-        this.texAtlas = texAtlas;
+
+        this.texAtlas =
+            texAtlas;
+
+        markPropertyPresent(
+            "texAtlas"
+        );
     }
 
     public Map<String, JsonValue> getExtraProperties() {
@@ -102,6 +135,10 @@ public class WeaponDefinition {
         extraProperties.put(
             name,
             value
+        );
+
+        markPropertyPresent(
+            name
         );
     }
 
@@ -130,5 +167,35 @@ public class WeaponDefinition {
         extraProperties.remove(
             name
         );
+
+        presentProperties.remove(
+            name
+        );
+    }
+
+    public void markPropertyPresent(
+        String propertyName
+    ) {
+
+        if (propertyName == null) {
+            return;
+        }
+
+        presentProperties.add(
+            propertyName
+        );
+    }
+
+    public boolean wasPropertyPresent(
+        String propertyName
+    ) {
+
+        return presentProperties.contains(
+            propertyName
+        );
+    }
+
+    public Set<String> getPresentProperties() {
+        return presentProperties;
     }
 }

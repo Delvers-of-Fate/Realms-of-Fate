@@ -1,12 +1,14 @@
 package com.realmsoffate.toolkit.ui.editors;
 
-import com.interrupt.dungeoneer.entities.items.Wand;
-
 import com.realmsoffate.toolkit.content.metadata.ContentPropertyRegistry;
 import com.realmsoffate.toolkit.content.metadata.EnginePropertyScanner;
 import com.realmsoffate.toolkit.content.metadata.PropertyCategory;
 import com.realmsoffate.toolkit.content.metadata.PropertyDefinition;
 import com.realmsoffate.toolkit.content.metadata.PropertyVisibility;
+
+import com.realmsoffate.toolkit.content.weapon.WeaponDefinition;
+import com.realmsoffate.toolkit.content.weapon.WeaponJsonAdapter;
+import com.realmsoffate.toolkit.content.weapon.WeaponKind;
 
 import com.realmsoffate.toolkit.ui.ToolkitColors;
 import com.realmsoffate.toolkit.ui.ToolkitStyles;
@@ -18,48 +20,84 @@ import java.awt.*;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class WeaponEditorPanel extends JPanel {
 
-    private final List<PropertyDefinition> properties;
+    private WeaponKind selectedWeaponKind =
+        WeaponKind.SWORD;
 
-    /*
-     * Keeps track of which Swing control belongs
-     * to which engine property.
-     *
-     * Later this is how Save will read the values.
-     */
+    private List<PropertyDefinition> properties;
+
+    private PropertyValueBinder valueBinder;
+
+    private WeaponDefinition weapon;
+
     private final Map<String, JComponent> propertyControls =
         new LinkedHashMap<String, JComponent>();
 
-    private JPanel normalPropertiesPanel;
+    private JComboBox<WeaponKind> weaponTypeComboBox;
+
+    private JPanel editorHost;
+
     private JPanel advancedPropertiesPanel;
+
+    private JTextArea jsonPreviewArea;
 
     private JButton saveButton;
     private JButton advancedButton;
 
     private boolean advancedVisible = false;
 
+    private boolean changingWeaponType = false;
+
     public WeaponEditorPanel() {
 
-        /*
-         * Wand is being used as our first weapon test class
-         * because it gives us normal Item/Entity inheritance
-         * plus the magic-related weapon properties we've
-         * already been working with.
-         *
-         * Later the editor will choose the actual engine class
-         * based on Weapon Type.
-         */
         properties =
             EnginePropertyScanner.scan(
-                Wand.class
+                selectedWeaponKind.getEngineClass()
+            );
+
+        valueBinder =
+            new PropertyValueBinder(
+                properties
+            );
+
+        weapon =
+            createDefaultWeapon(
+                selectedWeaponKind
             );
 
         buildEditor();
+
+        rebuildEditorArea();
+    }
+
+    private WeaponDefinition createDefaultWeapon(
+        WeaponKind kind
+    ) {
+
+        String json =
+            "{\n"
+                + "  \"class\": \""
+                + kind.getEngineClassName()
+                + "\",\n"
+                + "  \"itemType\": \""
+                + kind.getDefaultItemType()
+                + "\",\n"
+                + "  \"name\": \"New "
+                + kind.getDisplayName()
+                + "\",\n"
+                + "  \"tex\": 0\n"
+                + "}";
+
+        return WeaponJsonAdapter.fromJson(
+            json
+        );
     }
 
     private void buildEditor() {
@@ -77,8 +115,17 @@ public class WeaponEditorPanel extends JPanel {
             BorderLayout.NORTH
         );
 
+        editorHost =
+            new JPanel(
+                new BorderLayout()
+            );
+
+        editorHost.setBackground(
+            ToolkitColors.BACKGROUND
+        );
+
         add(
-            createScrollableEditor(),
+            editorHost,
             BorderLayout.CENTER
         );
 
@@ -91,22 +138,32 @@ public class WeaponEditorPanel extends JPanel {
     private JPanel createHeader() {
 
         JPanel header =
-            new JPanel();
+            new JPanel(
+                new BorderLayout(
+                    30,
+                    0
+                )
+            );
 
         header.setOpaque(false);
 
         header.setBorder(
             new EmptyBorder(
-                22,
+                20,
                 28,
                 14,
                 28
             )
         );
 
-        header.setLayout(
+        JPanel titlePanel =
+            new JPanel();
+
+        titlePanel.setOpaque(false);
+
+        titlePanel.setLayout(
             new BoxLayout(
-                header,
+                titlePanel,
                 BoxLayout.Y_AXIS
             )
         );
@@ -121,12 +178,10 @@ public class WeaponEditorPanel extends JPanel {
         );
 
         title.setFont(
-            title
-                .getFont()
-                .deriveFont(
-                    Font.BOLD,
-                    24f
-                )
+            title.getFont().deriveFont(
+                Font.BOLD,
+                24f
+            )
         );
 
         JLabel description =
@@ -138,29 +193,300 @@ public class WeaponEditorPanel extends JPanel {
             description
         );
 
-        title.setAlignmentX(
-            Component.LEFT_ALIGNMENT
-        );
+        titlePanel.add(title);
 
-        description.setAlignmentX(
-            Component.LEFT_ALIGNMENT
-        );
-
-        header.add(
-            title
-        );
-
-        header.add(
+        titlePanel.add(
             Box.createVerticalStrut(
                 5
             )
         );
 
+        titlePanel.add(description);
+
+        JPanel typePanel =
+            new JPanel();
+
+        typePanel.setOpaque(false);
+
+        typePanel.setLayout(
+            new BoxLayout(
+                typePanel,
+                BoxLayout.Y_AXIS
+            )
+        );
+
+        JLabel typeLabel =
+            new JLabel(
+                "WEAPON TYPE"
+            );
+
+        ToolkitStyles.styleSectionTitle(
+            typeLabel
+        );
+
+        weaponTypeComboBox =
+            new JComboBox<WeaponKind>(
+                WeaponKind.values()
+            );
+
+        weaponTypeComboBox.setSelectedItem(
+            selectedWeaponKind
+        );
+
+        weaponTypeComboBox.setPreferredSize(
+            new Dimension(
+                180,
+                32
+            )
+        );
+
+        weaponTypeComboBox.setMaximumSize(
+            new Dimension(
+                180,
+                32
+            )
+        );
+
+        weaponTypeComboBox.addActionListener(
+            e -> weaponTypeChanged()
+        );
+
+        typePanel.add(typeLabel);
+
+        typePanel.add(
+            Box.createVerticalStrut(
+                6
+            )
+        );
+
+        typePanel.add(
+            weaponTypeComboBox
+        );
+
         header.add(
-            description
+            titlePanel,
+            BorderLayout.CENTER
+        );
+
+        header.add(
+            typePanel,
+            BorderLayout.EAST
         );
 
         return header;
+    }
+
+    private void weaponTypeChanged() {
+
+        if (changingWeaponType) {
+            return;
+        }
+
+        WeaponKind newKind =
+            (WeaponKind) weaponTypeComboBox
+                .getSelectedItem();
+
+        if (
+            newKind == null
+                || newKind == selectedWeaponKind
+        ) {
+
+            return;
+        }
+
+        changeWeaponType(
+            newKind
+        );
+    }
+
+    private void changeWeaponType(
+        WeaponKind newKind
+    ) {
+
+        changingWeaponType =
+            true;
+
+        try {
+
+            /*
+             * First save the currently visible controls into
+             * the existing model.
+             */
+            valueBinder.saveWeapon(
+                weapon,
+                propertyControls
+            );
+
+            List<PropertyDefinition> oldProperties =
+                properties;
+
+            List<PropertyDefinition> newProperties =
+                EnginePropertyScanner.scan(
+                    newKind.getEngineClass()
+                );
+
+            /*
+             * Remove known fields that belonged only to the
+             * old subtype.
+             *
+             * Example:
+             *
+             * Wand -> Sword
+             *
+             * Wand-only spell / charge fields should not remain
+             * inside the new Sword JSON.
+             *
+             * Common inherited Weapon/Item properties survive.
+             */
+            removeOldSubtypeProperties(
+                oldProperties,
+                newProperties
+            );
+
+            selectedWeaponKind =
+                newKind;
+
+            weapon.setClassName(
+                newKind.getEngineClassName()
+            );
+
+            weapon.setItemType(
+                newKind.getDefaultItemType()
+            );
+
+            properties =
+                newProperties;
+
+            valueBinder =
+                new PropertyValueBinder(
+                    properties
+                );
+
+            advancedVisible =
+                false;
+
+            advancedButton.setText(
+                "Show Advanced Properties"
+            );
+
+            rebuildEditorArea();
+
+        }
+        finally {
+
+            changingWeaponType =
+                false;
+        }
+    }
+
+    private void removeOldSubtypeProperties(
+        List<PropertyDefinition> oldProperties,
+        List<PropertyDefinition> newProperties
+    ) {
+
+        Set<String> newPropertyNames =
+            new HashSet<String>();
+
+        for (
+            PropertyDefinition property
+            : newProperties
+        ) {
+
+            newPropertyNames.add(
+                property.getName()
+            );
+        }
+
+        for (
+            PropertyDefinition oldProperty
+            : oldProperties
+        ) {
+
+            String propertyName =
+                oldProperty.getName();
+
+            if (
+                newPropertyNames.contains(
+                    propertyName
+                )
+            ) {
+
+                continue;
+            }
+
+            /*
+             * These core typed fields are controlled separately.
+             */
+            if (
+                propertyName.equals("class")
+                    || propertyName.equals("name")
+                    || propertyName.equals("itemType")
+                    || propertyName.equals("tex")
+                    || propertyName.equals("texAtlas")
+            ) {
+
+                continue;
+            }
+
+            weapon.removeExtraProperty(
+                propertyName
+            );
+        }
+    }
+
+    private void rebuildEditorArea() {
+
+        propertyControls.clear();
+
+        editorHost.removeAll();
+
+        JSplitPane mainContent =
+            createMainContent();
+
+        editorHost.add(
+            mainContent,
+            BorderLayout.CENTER
+        );
+
+        valueBinder.loadWeapon(
+            weapon,
+            propertyControls
+        );
+
+        updateJsonPreview();
+
+        editorHost.revalidate();
+        editorHost.repaint();
+    }
+
+    private JSplitPane createMainContent() {
+
+        JScrollPane editorScroll =
+            createScrollableEditor();
+
+        JPanel previewPanel =
+            createJsonPreviewPanel();
+
+        JSplitPane splitPane =
+            new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                editorScroll,
+                previewPanel
+            );
+
+        splitPane.setResizeWeight(
+            0.72
+        );
+
+        splitPane.setDividerLocation(
+            650
+        );
+
+        splitPane.setBorder(
+            BorderFactory.createEmptyBorder()
+        );
+
+        return splitPane;
     }
 
     private JScrollPane createScrollableEditor() {
@@ -177,7 +503,7 @@ public class WeaponEditorPanel extends JPanel {
                 5,
                 28,
                 20,
-                28
+                18
             )
         );
 
@@ -188,14 +514,14 @@ public class WeaponEditorPanel extends JPanel {
             )
         );
 
-        normalPropertiesPanel =
+        JPanel normalPropertiesPanel =
             createNormalPropertiesPanel();
 
         advancedPropertiesPanel =
             createAdvancedPropertiesPanel();
 
         advancedPropertiesPanel.setVisible(
-            false
+            advancedVisible
         );
 
         normalPropertiesPanel.setAlignmentX(
@@ -233,7 +559,8 @@ public class WeaponEditorPanel extends JPanel {
             BorderFactory.createEmptyBorder()
         );
 
-        scrollPane.getVerticalScrollBar()
+        scrollPane
+            .getVerticalScrollBar()
             .setUnitIncrement(
                 18
             );
@@ -243,6 +570,80 @@ public class WeaponEditorPanel extends JPanel {
         );
 
         return scrollPane;
+    }
+
+    private JPanel createJsonPreviewPanel() {
+
+        JPanel panel =
+            new JPanel(
+                new BorderLayout()
+            );
+
+        panel.setBackground(
+            ToolkitColors.PANEL
+        );
+
+        panel.setBorder(
+            new EmptyBorder(
+                18,
+                18,
+                18,
+                18
+            )
+        );
+
+        JLabel title =
+            new JLabel(
+                "JSON PREVIEW"
+            );
+
+        ToolkitStyles.styleSectionTitle(
+            title
+        );
+
+        jsonPreviewArea =
+            new JTextArea();
+
+        jsonPreviewArea.setEditable(
+            false
+        );
+
+        jsonPreviewArea.setFont(
+            new Font(
+                Font.MONOSPACED,
+                Font.PLAIN,
+                12
+            )
+        );
+
+        jsonPreviewArea.setBackground(
+            ToolkitColors.BACKGROUND
+        );
+
+        jsonPreviewArea.setForeground(
+            ToolkitColors.TEXT_PRIMARY
+        );
+
+        JScrollPane scrollPane =
+            new JScrollPane(
+                jsonPreviewArea
+            );
+
+        scrollPane.setBorder(
+            BorderFactory.createEmptyBorder()
+        );
+
+        panel.add(
+            title,
+            BorderLayout.NORTH
+        );
+
+        panel.add(
+            scrollPane,
+            BorderLayout.CENTER
+        );
+
+        return panel;
     }
 
     private JPanel createNormalPropertiesPanel() {
@@ -271,7 +672,6 @@ public class WeaponEditorPanel extends JPanel {
                 category
                     == PropertyCategory.ADVANCED
             ) {
-
                 continue;
             }
 
@@ -284,7 +684,6 @@ public class WeaponEditorPanel extends JPanel {
                 categoryProperties == null
                     || categoryProperties.isEmpty()
             ) {
-
                 continue;
             }
 
@@ -299,9 +698,7 @@ public class WeaponEditorPanel extends JPanel {
                 Component.LEFT_ALIGNMENT
             );
 
-            container.add(
-                section
-            );
+            container.add(section);
 
             container.add(
                 Box.createVerticalStrut(
@@ -315,7 +712,7 @@ public class WeaponEditorPanel extends JPanel {
 
     private JPanel createAdvancedPropertiesPanel() {
 
-        List<PropertyDefinition> advancedProperties =
+        List<PropertyDefinition> advanced =
             new ArrayList<PropertyDefinition>();
 
         for (
@@ -333,7 +730,7 @@ public class WeaponEditorPanel extends JPanel {
                     == PropertyVisibility.ADVANCED
             ) {
 
-                advancedProperties.add(
+                advanced.add(
                     property
                 );
             }
@@ -351,9 +748,7 @@ public class WeaponEditorPanel extends JPanel {
             )
         );
 
-        if (
-            advancedProperties.isEmpty()
-        ) {
+        if (advanced.isEmpty()) {
 
             JLabel empty =
                 new JLabel(
@@ -364,9 +759,7 @@ public class WeaponEditorPanel extends JPanel {
                 empty
             );
 
-            container.add(
-                empty
-            );
+            container.add(empty);
 
             return container;
         }
@@ -374,7 +767,7 @@ public class WeaponEditorPanel extends JPanel {
         JPanel section =
             createPropertySection(
                 "Advanced Properties",
-                advancedProperties,
+                advanced,
                 true
             );
 
@@ -382,9 +775,7 @@ public class WeaponEditorPanel extends JPanel {
             Component.LEFT_ALIGNMENT
         );
 
-        container.add(
-            section
-        );
+        container.add(section);
 
         return container;
     }
@@ -423,9 +814,7 @@ public class WeaponEditorPanel extends JPanel {
                     category
                 );
 
-            if (
-                categoryProperties == null
-            ) {
+            if (categoryProperties == null) {
 
                 categoryProperties =
                     new ArrayList<PropertyDefinition>();
@@ -484,9 +873,7 @@ public class WeaponEditorPanel extends JPanel {
             Component.LEFT_ALIGNMENT
         );
 
-        section.add(
-            title
-        );
+        section.add(title);
 
         section.add(
             Box.createVerticalStrut(
@@ -501,9 +888,7 @@ public class WeaponEditorPanel extends JPanel {
         ) {
 
             PropertyDefinition property =
-                sectionProperties.get(
-                    i
-                );
+                sectionProperties.get(i);
 
             section.add(
                 createPropertyRow(
@@ -585,10 +970,6 @@ public class WeaponEditorPanel extends JPanel {
             )
         );
 
-        /*
-         * This map becomes important when we implement
-         * loading and saving actual values.
-         */
         propertyControls.put(
             property.getName(),
             control
@@ -679,16 +1060,8 @@ public class WeaponEditorPanel extends JPanel {
             e -> toggleAdvancedProperties()
         );
 
-        /*
-         * Saving actual Delver data comes after we've proven
-         * the generated editor is correct.
-         */
-        saveButton.setEnabled(
-            false
-        );
-
-        saveButton.setToolTipText(
-            "Saving will be enabled after property binding is connected."
+        saveButton.addActionListener(
+            e -> saveWeapon()
         );
 
         footer.add(
@@ -704,6 +1077,37 @@ public class WeaponEditorPanel extends JPanel {
         return footer;
     }
 
+    private void saveWeapon() {
+
+        valueBinder.saveWeapon(
+            weapon,
+            propertyControls
+        );
+
+        updateJsonPreview();
+
+        JOptionPane.showMessageDialog(
+            this,
+            selectedWeaponKind.getDisplayName()
+                + " data updated successfully.",
+            "Weapon Updated",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    private void updateJsonPreview() {
+
+        jsonPreviewArea.setText(
+            WeaponJsonAdapter.toJson(
+                weapon
+            )
+        );
+
+        jsonPreviewArea.setCaretPosition(
+            0
+        );
+    }
+
     private void toggleAdvancedProperties() {
 
         advancedVisible =
@@ -713,29 +1117,28 @@ public class WeaponEditorPanel extends JPanel {
             advancedVisible
         );
 
-        if (advancedVisible) {
-
-            advancedButton.setText(
-                "Hide Advanced Properties"
-            );
-
-        }
-        else {
-
-            advancedButton.setText(
-                "Show Advanced Properties"
-            );
-        }
+        advancedButton.setText(
+            advancedVisible
+                ? "Hide Advanced Properties"
+                : "Show Advanced Properties"
+        );
 
         revalidate();
         repaint();
     }
 
-    public Map<String, JComponent> getPropertyControls() {
-        return propertyControls;
+    public WeaponDefinition getWeapon() {
+        return weapon;
     }
 
-    public JButton getSaveButton() {
-        return saveButton;
+    public WeaponKind getSelectedWeaponKind() {
+        return selectedWeaponKind;
+    }
+
+    public String getWeaponJson() {
+
+        return WeaponJsonAdapter.toJson(
+            weapon
+        );
     }
 }

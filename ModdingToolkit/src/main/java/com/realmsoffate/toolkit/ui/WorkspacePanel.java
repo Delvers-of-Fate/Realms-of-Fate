@@ -1,6 +1,7 @@
 package com.realmsoffate.toolkit.ui;
 
 import com.realmsoffate.toolkit.project.ModProject;
+import com.realmsoffate.toolkit.ui.editors.WeaponEditorPanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,9 +16,14 @@ public class WorkspacePanel extends JPanel {
 
     private JTextField searchField;
 
-    public WorkspacePanel(ModProject project) {
+    private JPanel workspaceContainer;
 
-        this.project = project;
+    public WorkspacePanel(
+        ModProject project
+    ) {
+
+        this.project =
+            project;
 
         setLayout(
             new BorderLayout()
@@ -73,12 +79,10 @@ public class WorkspacePanel extends JPanel {
         );
 
         toolkitTitle.setFont(
-            toolkitTitle
-                .getFont()
-                .deriveFont(
-                    Font.BOLD,
-                    15f
-                )
+            toolkitTitle.getFont().deriveFont(
+                Font.BOLD,
+                15f
+            )
         );
 
         JLabel projectName =
@@ -92,12 +96,10 @@ public class WorkspacePanel extends JPanel {
         );
 
         projectName.setFont(
-            projectName
-                .getFont()
-                .deriveFont(
-                    Font.BOLD,
-                    16f
-                )
+            projectName.getFont().deriveFont(
+                Font.BOLD,
+                16f
+            )
         );
 
         testModButton =
@@ -143,15 +145,21 @@ public class WorkspacePanel extends JPanel {
             BorderLayout.WEST
         );
 
-        main.add(
-            createWorkspaceArea(),
-            BorderLayout.CENTER
+        workspaceContainer =
+            new JPanel(
+                new BorderLayout()
+            );
+
+        workspaceContainer.setBackground(
+            ToolkitColors.BACKGROUND
         );
 
         main.add(
-            createPropertiesPanel(),
-            BorderLayout.EAST
+            workspaceContainer,
+            BorderLayout.CENTER
         );
+
+        showProjectHome();
 
         return main;
     }
@@ -204,6 +212,10 @@ public class WorkspacePanel extends JPanel {
         searchField =
             new JTextField();
 
+        searchField.setToolTipText(
+            "Search project content"
+        );
+
         searchField.setMaximumSize(
             new Dimension(
                 Integer.MAX_VALUE,
@@ -231,73 +243,43 @@ public class WorkspacePanel extends JPanel {
         panel.add(contentTitle);
 
         panel.add(
-            Box.createVerticalStrut(
-                12
-            )
+            Box.createVerticalStrut(12)
         );
 
         panel.add(searchField);
 
         panel.add(
-            Box.createVerticalStrut(
-                14
-            )
+            Box.createVerticalStrut(14)
         );
 
         panel.add(createContentButton);
 
         panel.add(
-            Box.createVerticalStrut(
-                20
-            )
+            Box.createVerticalStrut(20)
         );
 
         panel.add(
-            createNavButton(
-                "Items"
-            )
+            createNavButton("Items")
         );
 
         panel.add(
-            Box.createVerticalStrut(
-                6
-            )
+            Box.createVerticalStrut(6)
         );
 
         panel.add(
-            createNavButton(
-                "Magic"
-            )
+            createNavButton("Magic")
         );
 
         panel.add(
-            Box.createVerticalStrut(
-                6
-            )
+            Box.createVerticalStrut(6)
         );
 
         panel.add(
-            createNavButton(
-                "Creatures"
-            )
+            createNavButton("Creatures")
         );
 
         panel.add(
-            Box.createVerticalStrut(
-                6
-            )
-        );
-
-        panel.add(
-            createNavButton(
-                "World"
-            )
-        );
-
-        panel.add(
-            Box.createVerticalStrut(
-                28
-            )
+            Box.createVerticalStrut(28)
         );
 
         JLabel assetsTitle =
@@ -316,9 +298,7 @@ public class WorkspacePanel extends JPanel {
         panel.add(assetsTitle);
 
         panel.add(
-            Box.createVerticalStrut(
-                10
-            )
+            Box.createVerticalStrut(10)
         );
 
         panel.add(
@@ -328,9 +308,7 @@ public class WorkspacePanel extends JPanel {
         );
 
         panel.add(
-            Box.createVerticalStrut(
-                6
-            )
+            Box.createVerticalStrut(6)
         );
 
         panel.add(
@@ -377,7 +355,9 @@ public class WorkspacePanel extends JPanel {
         return button;
     }
 
-    private JPanel createWorkspaceArea() {
+    public void showProjectHome() {
+
+        workspaceContainer.removeAll();
 
         JPanel wrapper =
             new JPanel(
@@ -414,12 +394,10 @@ public class WorkspacePanel extends JPanel {
         );
 
         projectTitle.setFont(
-            projectTitle
-                .getFont()
-                .deriveFont(
-                    Font.BOLD,
-                    28f
-                )
+            projectTitle.getFont().deriveFont(
+                Font.BOLD,
+                28f
+            )
         );
 
         JLabel emptyMessage =
@@ -455,86 +433,46 @@ public class WorkspacePanel extends JPanel {
         content.add(projectTitle);
 
         content.add(
-            Box.createVerticalStrut(
-                10
-            )
+            Box.createVerticalStrut(10)
         );
 
         content.add(emptyMessage);
 
         content.add(
-            Box.createVerticalStrut(
-                22
-            )
+            Box.createVerticalStrut(22)
         );
 
         content.add(createButton);
 
         wrapper.add(content);
 
-        return wrapper;
-    }
-
-    private JPanel createPropertiesPanel() {
-
-        JPanel panel =
-            new JPanel(
-                new BorderLayout()
-            );
-
-        panel.setBackground(
-            ToolkitColors.PANEL
-        );
-
-        panel.setPreferredSize(
-            new Dimension(
-                260,
-                100
-            )
-        );
-
-        panel.setBorder(
-            new EmptyBorder(
-                18,
-                18,
-                18,
-                18
-            )
-        );
-
-        JLabel title =
-            new JLabel(
-                "PROPERTIES"
-            );
-
-        ToolkitStyles.styleSectionTitle(
-            title
-        );
-
-        JLabel empty =
-            new JLabel(
-                "<html>Select content to edit its properties.</html>"
-            );
-
-        empty.setForeground(
-            ToolkitColors.TEXT_SECONDARY
-        );
-
-        empty.setVerticalAlignment(
-            SwingConstants.TOP
-        );
-
-        panel.add(
-            title,
-            BorderLayout.NORTH
-        );
-
-        panel.add(
-            empty,
+        workspaceContainer.add(
+            wrapper,
             BorderLayout.CENTER
         );
 
-        return panel;
+        refreshWorkspace();
+    }
+
+    public void showWeaponEditor() {
+
+        workspaceContainer.removeAll();
+
+        WeaponEditorPanel weaponEditor =
+            new WeaponEditorPanel();
+
+        workspaceContainer.add(
+            weaponEditor,
+            BorderLayout.CENTER
+        );
+
+        refreshWorkspace();
+    }
+
+    private void refreshWorkspace() {
+
+        workspaceContainer.revalidate();
+        workspaceContainer.repaint();
     }
 
     private JPanel createFooter() {

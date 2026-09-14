@@ -11,12 +11,6 @@ public final class WeaponJsonAdapter {
     private WeaponJsonAdapter() {
     }
 
-    /**
-     * Reads a weapon JSON object into a WeaponDefinition.
-     *
-     * Known properties are placed into typed fields.
-     * Every unknown property is preserved inside extraProperties.
-     */
     public static WeaponDefinition fromJson(
         String jsonText
     ) {
@@ -44,9 +38,6 @@ public final class WeaponJsonAdapter {
         );
     }
 
-    /**
-     * Reads an already-parsed JsonValue.
-     */
     public static WeaponDefinition fromJsonValue(
         JsonValue root
     ) {
@@ -68,26 +59,51 @@ public final class WeaponJsonAdapter {
         WeaponDefinition weapon =
             new WeaponDefinition();
 
-        weapon.setClassName(
-            getOptionalString(
-                root,
-                "class"
-            )
-        );
+        /*
+         * First record every property that actually existed.
+         */
+        JsonValue child =
+            root.child;
 
-        weapon.setName(
-            getOptionalString(
-                root,
-                "name"
-            )
-        );
+        while (child != null) {
 
-        weapon.setItemType(
-            getOptionalString(
-                root,
-                "itemType"
-            )
-        );
+            weapon.markPropertyPresent(
+                child.name
+            );
+
+            child =
+                child.next;
+        }
+
+        if (root.has("class")) {
+
+            weapon.setClassName(
+                getOptionalString(
+                    root,
+                    "class"
+                )
+            );
+        }
+
+        if (root.has("name")) {
+
+            weapon.setName(
+                getOptionalString(
+                    root,
+                    "name"
+                )
+            );
+        }
+
+        if (root.has("itemType")) {
+
+            weapon.setItemType(
+                getOptionalString(
+                    root,
+                    "itemType"
+                )
+            );
+        }
 
         if (root.has("tex")) {
 
@@ -99,33 +115,32 @@ public final class WeaponJsonAdapter {
             );
         }
 
-        weapon.setTexAtlas(
-            getOptionalString(
-                root,
-                "texAtlas"
-            )
-        );
+        if (root.has("texAtlas")) {
+
+            weapon.setTexAtlas(
+                getOptionalString(
+                    root,
+                    "texAtlas"
+                )
+            );
+        }
 
         /*
-         * Preserve everything that the toolkit does not
-         * explicitly understand yet.
+         * Preserve every unknown property.
          */
-        JsonValue child =
+        child =
             root.child;
 
         while (child != null) {
 
-            String propertyName =
-                child.name;
-
             if (
                 !isKnownProperty(
-                    propertyName
+                    child.name
                 )
             ) {
 
                 weapon.putExtraProperty(
-                    propertyName,
+                    child.name,
                     copyJsonValue(
                         child
                     )
@@ -139,9 +154,6 @@ public final class WeaponJsonAdapter {
         return weapon;
     }
 
-    /**
-     * Converts a WeaponDefinition back into formatted JSON.
-     */
     public static String toJson(
         WeaponDefinition weapon
     ) {
@@ -157,9 +169,6 @@ public final class WeaponJsonAdapter {
         );
     }
 
-    /**
-     * Converts a WeaponDefinition into a JsonValue object.
-     */
     public static JsonValue toJsonValue(
         WeaponDefinition weapon
     ) {
@@ -176,42 +185,74 @@ public final class WeaponJsonAdapter {
                 JsonValue.ValueType.object
             );
 
-        addStringIfPresent(
-            root,
-            "class",
-            weapon.getClassName()
-        );
-
-        addStringIfPresent(
-            root,
-            "itemType",
-            weapon.getItemType()
-        );
-
-        addStringIfPresent(
-            root,
-            "name",
-            weapon.getName()
-        );
-
-        root.addChild(
-            "tex",
-            new JsonValue(
-                weapon.getTex()
+        if (
+            weapon.wasPropertyPresent(
+                "class"
             )
-        );
+        ) {
 
-        addStringIfPresent(
-            root,
-            "texAtlas",
-            weapon.getTexAtlas()
-        );
+            addString(
+                root,
+                "class",
+                weapon.getClassName()
+            );
+        }
+
+        if (
+            weapon.wasPropertyPresent(
+                "itemType"
+            )
+        ) {
+
+            addString(
+                root,
+                "itemType",
+                weapon.getItemType()
+            );
+        }
+
+        if (
+            weapon.wasPropertyPresent(
+                "name"
+            )
+        ) {
+
+            addString(
+                root,
+                "name",
+                weapon.getName()
+            );
+        }
+
+        if (
+            weapon.wasPropertyPresent(
+                "tex"
+            )
+        ) {
+
+            root.addChild(
+                "tex",
+                new JsonValue(
+                    (long) weapon.getTex()
+                )
+            );
+        }
+
+        if (
+            weapon.wasPropertyPresent(
+                "texAtlas"
+            )
+        ) {
+
+            addString(
+                root,
+                "texAtlas",
+                weapon.getTexAtlas()
+            );
+        }
 
         /*
-         * Restore every unsupported / advanced property.
-         *
-         * This is the important part that makes the adapter
-         * lossless for properties the toolkit does not know yet.
+         * Restore all advanced / unsupported properties.
          */
         for (
             Map.Entry<String, JsonValue> entry
@@ -232,13 +273,6 @@ public final class WeaponJsonAdapter {
                 continue;
             }
 
-            /*
-             * Known properties always come from the typed
-             * WeaponDefinition fields.
-             *
-             * Do not allow an extra property to accidentally
-             * overwrite one.
-             */
             if (
                 isKnownProperty(
                     propertyName
@@ -295,16 +329,20 @@ public final class WeaponJsonAdapter {
         return value.asString();
     }
 
-    private static void addStringIfPresent(
+    private static void addString(
         JsonValue root,
         String propertyName,
         String value
     ) {
 
-        if (
-            value == null
-                || value.trim().isEmpty()
-        ) {
+        if (value == null) {
+
+            root.addChild(
+                propertyName,
+                new JsonValue(
+                    JsonValue.ValueType.nullValue
+                )
+            );
 
             return;
         }
@@ -317,15 +355,6 @@ public final class WeaponJsonAdapter {
         );
     }
 
-    /**
-     * Makes a deep copy of a JsonValue.
-     *
-     * We do this instead of reusing the original JsonValue because
-     * JsonValue nodes contain parent/next/previous links.
-     *
-     * Reusing the exact node in another JSON tree could corrupt
-     * the original tree.
-     */
     private static JsonValue copyJsonValue(
         JsonValue value
     ) {

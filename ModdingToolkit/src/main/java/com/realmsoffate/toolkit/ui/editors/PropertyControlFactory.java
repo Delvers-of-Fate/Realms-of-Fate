@@ -166,12 +166,64 @@ public final class PropertyControlFactory {
         PropertyDefinition property
     ) {
 
+        DefaultComboBoxModel<Object> model =
+            new DefaultComboBoxModel<Object>();
+
         Object[] values =
             property.getEnumValues();
 
-        return new JComboBox<Object>(
-            values
+        for (Object value : values) {
+
+            model.addElement(
+                value
+            );
+        }
+
+        JComboBox<Object> comboBox =
+            new JComboBox<Object>(
+                model
+            );
+
+        comboBox.setRenderer(
+            new DefaultListCellRenderer() {
+
+                @Override
+                public Component getListCellRendererComponent(
+                    JList<?> list,
+                    Object value,
+                    int index,
+                    boolean isSelected,
+                    boolean cellHasFocus
+                ) {
+
+                    JLabel label =
+                        (JLabel) super.getListCellRendererComponent(
+                            list,
+                            value,
+                            index,
+                            isSelected,
+                            cellHasFocus
+                        );
+
+                    if (
+                        value instanceof CustomEnumValue
+                    ) {
+
+                        CustomEnumValue customValue =
+                            (CustomEnumValue) value;
+
+                        label.setText(
+                            customValue.getValue()
+                                + " (custom)"
+                        );
+                    }
+
+                    return label;
+                }
+            }
         );
+
+        return comboBox;
     }
 
     private static JButton createComplexControl(
@@ -183,14 +235,34 @@ public final class PropertyControlFactory {
                 text
             );
 
-        button.setEnabled(
-            false
-        );
+        button.setEnabled(false);
 
         button.setToolTipText(
             "A specialized editor for this property type will be added later."
         );
 
         return button;
+    }
+
+    public static class CustomEnumValue {
+
+        private final String value;
+
+        public CustomEnumValue(
+            String value
+        ) {
+
+            this.value =
+                value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
     }
 }

@@ -22,7 +22,7 @@ public final class ContentPropertyRegistry {
             PropertyCategory.GENERAL
         );
 
-        registerEditor(
+        registerAdvanced(
             "itemType",
             "Item Type",
             PropertyCategory.GENERAL

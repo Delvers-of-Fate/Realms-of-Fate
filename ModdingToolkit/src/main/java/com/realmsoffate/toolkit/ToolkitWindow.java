@@ -1,15 +1,19 @@
 package com.realmsoffate.toolkit;
 
 import com.realmsoffate.toolkit.content.ContentType;
+
 import com.realmsoffate.toolkit.project.ModProject;
 import com.realmsoffate.toolkit.project.ModProjectManager;
 import com.realmsoffate.toolkit.project.ProjectCreationException;
+
 import com.realmsoffate.toolkit.ui.HomePanel;
 import com.realmsoffate.toolkit.ui.WorkspacePanel;
+
 import com.realmsoffate.toolkit.ui.dialogs.CreateContentDialog;
 import com.realmsoffate.toolkit.ui.dialogs.NewModDialog;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.io.File;
 
@@ -54,7 +58,8 @@ public class ToolkitWindow extends JFrame {
 
     private void showHomeScreen() {
 
-        currentProject = null;
+        currentProject =
+            null;
 
         homePanel =
             new HomePanel();
@@ -165,8 +170,8 @@ public class ToolkitWindow extends JFrame {
 
         if (
             currentProject == null
+                || workspacePanel == null
         ) {
-
             return;
         }
 
@@ -197,7 +202,7 @@ public class ToolkitWindow extends JFrame {
             type == ContentType.WEAPON
         ) {
 
-            showWeaponPlaceholder();
+            workspacePanel.showWeaponEditor();
 
             return;
         }
@@ -207,16 +212,6 @@ public class ToolkitWindow extends JFrame {
             type.getDisplayName()
                 + " editor will be added later.",
             "Coming Soon",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    private void showWeaponPlaceholder() {
-
-        JOptionPane.showMessageDialog(
-            this,
-            "Weapon editor is next.",
-            "Create Weapon",
             JOptionPane.INFORMATION_MESSAGE
         );
     }
