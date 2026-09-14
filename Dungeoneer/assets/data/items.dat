@@ -206,99 +206,134 @@
         ]
     },
     "wands": [
-        {
-            "class": "com.interrupt.dungeoneer.entities.items.Wand",
-            "itemType": "wand",
-            "name": "Test Wand",
-            "magicStatBoostMod": 6,
-            "usesCharges": false,
-            "usesMana": true,
-            "spell": {
-                "class": "com.interrupt.dungeoneer.entities.spells.MagicMissile",
-                "mpCost": 5,
-                    "canCharge": true,
-                    "maxChargeTime": 2.0,
-                    "chargedMpCost": 15,
-                    "chargedDamageMultiplier": 2.0,
-                    "firePattern": "SINGLE",
-                    "patternAngleStep": 30.0,
-                    "chargedFirePattern": "SPIRAL",
-                    "projectileDelay": 0.08,
-                    "projectileCount": 1,
-                    "chargedProjectileCount": 12,
-                    "projectileSpread": 0.0,
-                    "chargedProjectileSpread": 40.0,
-                "magicMissileProjectile": {
-                    "class": "com.interrupt.dungeoneer.entities.projectiles.MagicMissileProjectile",
-                    "tex": 52,
-                    "endAnimTex": 55,
-                    "scale": 0.5,
-                    "animSpeed": 7.5,
-                    "spriteAtlas": "particle",
-                    "floating": true,
-                    "fullbrite": true,
-                    "knockback": 0.01,
-                    "attached": [
-                        {
-                            "class": "com.interrupt.dungeoneer.entities.SpriteBeam",
-                            "tex": 30,
-                            "color": {
-                                "r": 0.6172,
-                                "g": 0.0937,
-                                "b": 0.7695
-                            },
-                            "yOffset": -0.425,
-                            "beamRenderMode": "LINE"
-                        }
-                    ],
-                    "splashRadius": 0.5,
-                    "explosion": {
-                        "explosionStartTex": 36,
-                        "explosionEndTex": 39,
-                        "explosionAnimSpeed": 15.0,
-                        "lightMod": 0.45,
-                        "explosionLightStartColor": {
-                            "r": 0.9490, "g": 0.3450, "b": 0.9176
-                        },
-                        "explosionLightEndColor": {
-                            "r": 0.6172, "g": 0.0937, "b": 0.7695
-                        },
-                        "explosionLightLifetime": 10,
-                        "particleCount": 5,
-                        "impulseDistance": 0.4,
-                        "impulseAmount": 0.05,
-                        "shakeDistance": 0.25,
-                        "particleForce": 0.5,
-                        "scale": 0.75,
-                        "randomRoll": 45.0
-                    }
+{
+    "class": "com.interrupt.dungeoneer.entities.items.Wand",
+    "itemType": "wand",
+    "name": "Test Wand",
+    "magicStatBoostMod": 6,
+
+    "usesCharges": false,
+    "usesMana": true,
+
+    "spell": {
+        "class": "com.interrupt.dungeoneer.entities.spells.MagicMissile",
+
+        "mpCost": 5,
+
+        "canCharge": true,
+        "maxChargeTime": 0.5,
+        "chargedMpCost": 15,
+        "chargedDamageMultiplier": 2.0,
+
+        "firePattern": "SINGLE",
+        "chargedFirePattern": "SPREAD",
+
+        "projectileCount": 1,
+        "chargedProjectileCount": 7,
+
+        "projectileSpread": 0.0,
+        "chargedProjectileSpread": 20.0,
+
+        "projectileDelay": 0.08,
+        "patternAngleStep": 30.0,
+        "chargedPatternAngleStep": 30.0,
+
+        "magicMissileProjectile": {
+            "class": "com.interrupt.dungeoneer.entities.projectiles.MagicMissileProjectile",
+
+            "movement": "HOMING",
+            "homingRange": 10.0,
+            "homingStrength": 0.1,
+            "homingCanRetarget": true,
+
+            "tex": 52,
+            "endAnimTex": 55,
+            "scale": 0.5,
+            "animSpeed": 7.5,
+            "spriteAtlas": "particle",
+
+            "floating": true,
+            "fullbrite": true,
+            "knockback": 0.01,
+
+            "attached": [
+                {
+                    "class": "com.interrupt.dungeoneer.entities.SpriteBeam",
+                    "tex": 30,
+                    "color": {
+                        "r": 0.6172,
+                        "g": 0.0937,
+                        "b": 0.7695
+                    },
+                    "yOffset": -0.425,
+                    "beamRenderMode": "LINE"
+                }
+            ],
+
+            "splashRadius": 0.5,
+
+            "explosion": {
+                "explosionStartTex": 36,
+                "explosionEndTex": 39,
+                "explosionAnimSpeed": 15.0,
+                "lightMod": 0.45,
+
+                "explosionLightStartColor": {
+                    "r": 0.9490,
+                    "g": 0.3450,
+                    "b": 0.9176
                 },
-                "spellColor": {
+
+                "explosionLightEndColor": {
                     "r": 0.6172,
                     "g": 0.0937,
                     "b": 0.7695
                 },
-                "appearance": {
-                    "tex": 15,
-                    "texAtlas": "particle"
-                },
-                "castSoundVolume": 0.1,
-                "trailInterval": 2,
-                "splashForce": 0.01,
-                "speed": 0.45,
-                "shotAccuracy": 0.92
-            },
-            "charges": 20,
-            "damageType": "MAGIC",
-            "baseDamage": 1,
-            "randDamage": 1,
-            "autoFire": false,
-            "autoFireTime": 10,
-            "tex": 1,
-            "spriteAtlas": "wands",
-            "yOffset": 0.0,
-            "cost": 45
-        }
+
+                "explosionLightLifetime": 10,
+                "particleCount": 5,
+                "impulseDistance": 0.4,
+                "impulseAmount": 0.05,
+                "shakeDistance": 0.25,
+                "particleForce": 0.5,
+                "scale": 0.75,
+                "randomRoll": 45.0
+            }
+        },
+
+        "spellColor": {
+            "r": 0.6172,
+            "g": 0.0937,
+            "b": 0.7695
+        },
+
+        "appearance": {
+            "tex": 15,
+            "texAtlas": "particle"
+        },
+
+        "castSoundVolume": 0.1,
+        "trailInterval": 2,
+        "splashForce": 0.01,
+        "speed": 0.45,
+        "shotAccuracy": 0.92
+    },
+
+    "charges": 20,
+
+    "damageType": "MAGIC",
+    "baseDamage": 1,
+    "randDamage": 1,
+
+    "autoFire": false,
+    "autoFireTime": 10,
+
+    "tex": 1,
+    "spriteAtlas": "wands",
+    "yOffset": 0.0,
+
+    "cost": 45
+}
     ],
     "potions": [
         {

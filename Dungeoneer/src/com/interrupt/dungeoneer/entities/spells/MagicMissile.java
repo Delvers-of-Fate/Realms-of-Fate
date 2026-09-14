@@ -2,120 +2,167 @@ package com.interrupt.dungeoneer.entities.spells;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector3;
-import com.interrupt.dungeoneer.entities.*;
+import com.interrupt.dungeoneer.entities.Entity;
+import com.interrupt.dungeoneer.entities.Explosion;
+import com.interrupt.dungeoneer.entities.Monster;
+import com.interrupt.dungeoneer.entities.Player;
 import com.interrupt.dungeoneer.entities.projectiles.MagicMissileProjectile;
 import com.interrupt.dungeoneer.game.Game;
 import com.interrupt.dungeoneer.gfx.Material;
 import com.interrupt.managers.EntityManager;
 
 public class MagicMissile extends Spell {
-	/** Sound to play on hit. */
-	public String hitSound = null;
 
-	/** Spell sprite. */
+    /** Sound to play on hit. */
+    public String hitSound = null;
+
+    /** Spell sprite. */
     public Material appearance = null;
 
-	/** Spell explosion. */
+    /** Spell explosion. */
     public Explosion explosion = null;
 
-	/** Spell projectile speed. */
-    float speed = 0.17f;
+    /** Spell projectile speed. */
+    public float speed = 0.17f;
 
-	/** Particle trail spawn interval. */
-	float trailInterval = 1f;
+    /** Particle trail spawn interval. */
+    public float trailInterval = 1f;
 
-	/** Force of spell splash damage. */
-	float splashForce = 0.1f;
+    /** Force of spell splash damage. */
+    public float splashForce = 0.1f;
 
-	/** Radius of spell splash. */
-	float splashRadius = 3f;
+    /** Radius of spell splash. */
+    public float splashRadius = 3f;
 
-	/** Does spell cause splash damage? */
-	public boolean splashDamage = false;
+    /** Does spell cause splash damage? */
+    public boolean splashDamage = false;
 
-	/** Does spell projectile float? */
-	boolean floating = true;
+    /** Does spell projectile float? */
+    public boolean floating = true;
 
-	/** Spell aim accuracy. */
-	float shotAccuracy = 1.0f;
+    /** Spell aim accuracy. */
+    public float shotAccuracy = 1.0f;
 
-    /** Firing pattern used by a normal cast. */
+    /** Spell projectile prefab. */
+    public MagicMissileProjectile magicMissileProjectile = null;
+
+
+    // ------------------------------------------------------------------------
+    // FIRE PATTERN
+    // ------------------------------------------------------------------------
+
+    /** Pattern used by a normal cast. */
     public FirePattern firePattern = FirePattern.SINGLE;
 
     /**
-     * Firing pattern used when fully charged.
-     * Null means use firePattern.
+     * Pattern used by a fully charged cast.
+     * null = use normal firePattern.
      */
     public FirePattern chargedFirePattern = null;
 
-    /** Number of projectiles fired by a normal cast. */
+    /** Projectile count for a normal cast. */
     public int projectileCount = 1;
 
-    /** Number of projectiles fired by a fully charged cast. */
+    /** Projectile count for a fully charged cast. */
     public int chargedProjectileCount = 1;
 
-    /** Horizontal spread in degrees for a normal cast. */
+    /** Total horizontal spread in degrees. */
     public float projectileSpread = 0f;
 
-    /** Horizontal spread in degrees for a fully charged cast. */
+    /** Total horizontal spread for charged casts. */
     public float chargedProjectileSpread = 0f;
 
+
+    // ------------------------------------------------------------------------
+    // TIMED PATTERNS
+    // ------------------------------------------------------------------------
+
     /**
-     * Delay in seconds between shots for timed fire patterns.
+     * Delay in seconds between projectiles for:
+     *
+     * VOLLEY
+     * BURST
+     * ALTERNATING
+     * SPIRAL
      */
     public float projectileDelay = 0.1f;
 
     /**
-     * Charged delay between shots.
-     * Set below 0 to use projectileDelay.
+     * Charged version of projectileDelay.
+     *
+     * -1 = use normal projectileDelay.
      */
     public float chargedProjectileDelay = -1f;
 
     /**
-     * Rotation in degrees between shots when using SPIRAL.
+     * Degrees rotated between each SPIRAL projectile.
      */
     public float patternAngleStep = 30f;
 
     /**
-     * Charged rotation between SPIRAL shots.
-     * Set below 0 to use patternAngleStep.
+     * Charged version of patternAngleStep.
+     *
+     * -1 = use normal patternAngleStep.
      */
     public float chargedPatternAngleStep = -1f;
 
-	/** Spell projectile. */
-    public MagicMissileProjectile magicMissileProjectile = null;
 
-    public MagicMissile() { }
+    public MagicMissile() {
+    }
+
+
+    // ------------------------------------------------------------------------
+    // CURRENT CAST SETTINGS
+    // ------------------------------------------------------------------------
 
     private FirePattern getCurrentFirePattern() {
-        if(canCharge && isChargedCast && chargedFirePattern != null) {
+
+        if(canCharge
+            && isChargedCast
+            && chargedFirePattern != null) {
+
             return chargedFirePattern;
+        }
+
+        if(firePattern == null) {
+            return FirePattern.SINGLE;
         }
 
         return firePattern;
     }
 
+
     private int getCurrentProjectileCount() {
 
-        int count;
+        int count = projectileCount;
 
         if(canCharge && isChargedCast) {
             count = chargedProjectileCount;
         }
-        else {
-            count = projectileCount;
+
+        // Safety limit so bad mod data cannot accidentally
+        // create thousands of entities in one cast.
+        if(count < 1) {
+            count = 1;
         }
 
-        return Math.max(1, Math.min(count, 64));
+        if(count > 64) {
+            count = 64;
+        }
+
+        return count;
     }
 
+
     private float getCurrentProjectileSpread() {
+
         if(canCharge && isChargedCast) {
             return chargedProjectileSpread;
         }
 
         return projectileSpread;
     }
+
 
     private float getCurrentProjectileDelay() {
 
@@ -129,6 +176,7 @@ public class MagicMissile extends Spell {
         return projectileDelay;
     }
 
+
     private float getCurrentPatternAngleStep() {
 
         if(canCharge
@@ -141,59 +189,119 @@ public class MagicMissile extends Spell {
         return patternAngleStep;
     }
 
-    private void castTimedPattern(
+
+    // ------------------------------------------------------------------------
+    // CAST
+    // ------------------------------------------------------------------------
+
+    @Override
+    public void doCast(
         Entity owner,
         Vector3 direction,
-        Vector3 position,
-        FirePattern pattern,
-        int count,
-        float spread) {
+        Vector3 position) {
 
-        float delay = getCurrentProjectileDelay();
-        float angleStep = getCurrentPatternAngleStep();
+        FirePattern pattern = getCurrentFirePattern();
 
-        int[] damageRolls = new int[count];
+        int count = getCurrentProjectileCount();
 
-        // Roll damage now so charged damage is preserved even after
-        // Wand resets isChargedCast.
-        for(int i = 0; i < count; i++) {
-            damageRolls[i] = doAttackRoll();
+        float spread = getCurrentProjectileSpread();
+
+        if(pattern == null) {
+            pattern = FirePattern.SINGLE;
         }
 
-        ProjectileSequence sequence =
-            new ProjectileSequence(
-                this,
-                owner,
-                position.cpy(),
-                direction.cpy(),
-                pattern,
-                count,
-                spread,
-                angleStep,
-                delay,
-                damageRolls
-            );
+        switch(pattern) {
 
-        Game.GetLevel().SpawnNonCollidingEntity(sequence);
+            case SPREAD:
+                castSpread(
+                    owner,
+                    position,
+                    direction,
+                    count,
+                    spread);
+                break;
+
+
+            case RING:
+                castRing(
+                    owner,
+                    position,
+                    direction,
+                    count);
+                break;
+
+
+            case CROSS:
+                castCross(
+                    owner,
+                    position,
+                    direction,
+                    count);
+                break;
+
+
+            case RANDOM:
+                castRandom(
+                    owner,
+                    position,
+                    direction,
+                    count,
+                    spread);
+                break;
+
+
+            case VOLLEY:
+            case BURST:
+            case ALTERNATING:
+            case SPIRAL:
+
+                castTimedPattern(
+                    owner,
+                    position,
+                    direction,
+                    pattern,
+                    count,
+                    spread);
+                break;
+
+
+            case SINGLE:
+            default:
+
+                spawnProjectile(
+                    owner,
+                    position,
+                    direction);
+
+                break;
+        }
     }
+
+
+    // ------------------------------------------------------------------------
+    // SINGLE PROJECTILE
+    // ------------------------------------------------------------------------
 
     private void spawnProjectile(
         Entity owner,
         Vector3 position,
         Vector3 direction) {
 
+        int damage = doAttackRoll();
+
         spawnProjectileWithDamage(
             owner,
             position,
             direction,
-            doAttackRoll()
-        );
+            damage);
     }
 
+
     /**
-     * Spawns a projectile using damage that has already been calculated.
+     * Package-private because ProjectileSequence uses this.
      *
-     * Package-private so ProjectileSequence can use it.
+     * Damage is supplied explicitly because timed patterns must roll
+     * their damage while the charged-cast state is still active.
      */
     void spawnProjectileWithDamage(
         Entity owner,
@@ -203,251 +311,387 @@ public class MagicMissile extends Spell {
 
         Vector3 projectileDirection = direction.cpy();
 
-        // Keep Delver's existing accuracy behavior.
-        if(Math.abs(shotAccuracy) < 1.0f) {
-
-            Vector3 axis = projectileDirection.cpy();
-
-            projectileDirection.rotate(
-                Game.rand.nextFloat()
-                    * (1.0f - Math.abs(shotAccuracy))
-                    * 45f,
-                0f,
-                1f,
-                0f
-            );
-
-            projectileDirection.rotate(
-                axis,
-                Game.rand.nextFloat() * 360f
-            );
-        }
+        applyAccuracy(projectileDirection);
 
         MagicMissileProjectile projectile =
             makeProjectile(
                 position,
                 projectileDirection,
                 damage,
-                owner
-            );
+                owner);
 
         Game.GetLevel().entities.add(projectile);
     }
 
-    @Override
-    public void doCast(Entity owner, Vector3 direction, Vector3 position) {
 
-        FirePattern pattern = getCurrentFirePattern();
-        int count = getCurrentProjectileCount();
-        float spread = getCurrentProjectileSpread();
+    // ------------------------------------------------------------------------
+    // ACCURACY
+    // ------------------------------------------------------------------------
 
-        switch(pattern) {
+    private void applyAccuracy(Vector3 direction) {
 
-            case SPREAD:
-                castSpread(
-                    owner,
-                    direction,
-                    position,
-                    count,
-                    spread
-                );
-                break;
-
-            case RING:
-                castRing(
-                    owner,
-                    direction,
-                    position,
-                    count
-                );
-                break;
-
-            case CROSS:
-                castCross(
-                    owner,
-                    direction,
-                    position
-                );
-                break;
-
-            case RANDOM:
-                castRandom(
-                    owner,
-                    direction,
-                    position,
-                    count,
-                    spread
-                );
-                break;
-
-            case VOLLEY:
-            case BURST:
-            case ALTERNATING:
-            case SPIRAL:
-                castTimedPattern(
-                    owner,
-                    direction,
-                    position,
-                    pattern,
-                    count,
-                    spread
-                );
-                break;
-
-            case SINGLE:
-            default:
-                spawnProjectile(
-                    owner,
-                    position,
-                    direction
-                );
-                break;
+        if(Math.abs(shotAccuracy) >= 1.0f) {
+            return;
         }
+
+        Vector3 axis = direction.cpy();
+
+        direction.rotate(
+            Game.rand.nextFloat()
+                * (1.0f - Math.abs(shotAccuracy))
+                * 45f,
+            0f,
+            1f,
+            0f);
+
+        direction.rotate(
+            axis,
+            Game.rand.nextFloat() * 360f);
     }
 
-    private void castRing(
-        Entity owner,
-        Vector3 direction,
-        Vector3 position,
-        int count) {
 
-        float angleStep = 360f / count;
-
-        for(int i = 0; i < count; i++) {
-            Vector3 shotDirection = direction.cpy();
-
-            shotDirection.y = 0f;
-
-            if(shotDirection.len2() <= 0.0001f) {
-                shotDirection.set(1f, 0f, 0f);
-            }
-
-            shotDirection.nor();
-            shotDirection.rotate(i * angleStep, 0f, 1f, 0f);
-
-            spawnProjectile(owner, position, shotDirection);
-        }
-    }
-
-    private void castCross(
-        Entity owner,
-        Vector3 direction,
-        Vector3 position) {
-
-        for(int i = 0; i < 4; i++) {
-            Vector3 shotDirection = direction.cpy();
-
-            shotDirection.y = 0f;
-
-            if(shotDirection.len2() <= 0.0001f) {
-                shotDirection.set(1f, 0f, 0f);
-            }
-
-            shotDirection.nor();
-            shotDirection.rotate(i * 90f, 0f, 1f, 0f);
-
-            spawnProjectile(owner, position, shotDirection);
-        }
-    }
-
-    private void castRandom(
-        Entity owner,
-        Vector3 direction,
-        Vector3 position,
-        int count,
-        float spread) {
-
-        for(int i = 0; i < count; i++) {
-            Vector3 shotDirection = direction.cpy();
-
-            float angle =
-                (Game.rand.nextFloat() * spread)
-                    - (spread * 0.5f);
-
-            shotDirection.rotate(angle, 0f, 1f, 0f);
-
-            spawnProjectile(owner, position, shotDirection);
-        }
-    }
+    // ------------------------------------------------------------------------
+    // SPREAD
+    // ------------------------------------------------------------------------
 
     private void castSpread(
         Entity owner,
-        Vector3 direction,
         Vector3 position,
+        Vector3 direction,
         int count,
         float spread) {
 
         if(count <= 1) {
-            spawnProjectile(owner, position, direction);
+
+            spawnProjectile(
+                owner,
+                position,
+                direction);
+
             return;
         }
 
         for(int i = 0; i < count; i++) {
-            Vector3 shotDirection = direction.cpy();
 
-            float t = (float)i / (float)(count - 1);
-            float angle = (-spread * 0.5f) + (spread * t);
+            float t =
+                (float)i
+                    / (float)(count - 1);
 
-            shotDirection.rotate(angle, 0f, 1f, 0f);
+            float angle =
+                (-spread * 0.5f)
+                    + (spread * t);
 
-            spawnProjectile(owner, position, shotDirection);
+            Vector3 shotDirection =
+                direction.cpy();
+
+            shotDirection.rotate(
+                angle,
+                0f,
+                1f,
+                0f);
+
+            spawnProjectile(
+                owner,
+                position,
+                shotDirection);
         }
     }
 
-	// Make the projectile to fire
-	protected MagicMissileProjectile makeProjectile(Vector3 position, Vector3 direction, int dmg, Entity owner) {
 
-		Player p = Game.instance.player;
-		float xOffset = (owner == p) ? 0f : 0f;
-		float yOffset = (owner == p) ? 0f : 0f;
-		float zOffset = (owner == p) ? 0f : 0.31f;
+    // ------------------------------------------------------------------------
+    // RING
+    // ------------------------------------------------------------------------
 
-		MagicMissileProjectile projectile;
+    private void castRing(
+        Entity owner,
+        Vector3 position,
+        Vector3 direction,
+        int count) {
 
-		if(magicMissileProjectile == null) {
+        if(count <= 1) {
 
-			// Old and busted way
-			projectile = new MagicMissileProjectile(position.x + xOffset, position.y + yOffset, position.z + zOffset, direction.x * speed, direction.z * speed, dmg, damageType, new Color(spellColor), owner);
+            spawnProjectile(
+                owner,
+                position,
+                direction);
 
-			if (explosion != null) projectile.explosion = explosion;
-			projectile.trailInterval = trailInterval;
-			projectile.splashForce = splashForce;
-			projectile.splashRadius = this.splashRadius;
-			projectile.splashDamage = this.splashDamage;
-			projectile.floating = this.floating;
+            return;
+        }
 
-			if(appearance != null) {
-				projectile.spriteAtlas = appearance.texAtlas;
-				projectile.tex = appearance.tex;
-			}
-		}
-		else {
+        float angleStep =
+            360f / (float)count;
 
-			// New, data driven way
-			projectile = (MagicMissileProjectile)EntityManager.instance.Copy(magicMissileProjectile);
+        for(int i = 0; i < count; i++) {
 
-			projectile.x = position.x + xOffset;
-			projectile.y = position.y + yOffset;
-			projectile.z = position.z + zOffset + 0.1f;
+            Vector3 shotDirection =
+                direction.cpy();
 
-			projectile.xa = direction.x * speed;
-			projectile.ya = direction.z * speed;
+            shotDirection.rotate(
+                angleStep * i,
+                0f,
+                1f,
+                0f);
 
-			projectile.owner = owner;
-			projectile.damage = dmg;
-			projectile.damageType = damageType;
+            spawnProjectile(
+                owner,
+                position,
+                shotDirection);
+        }
+    }
 
-			if(spellColor != null) projectile.color = spellColor;
-		}
 
-		// Offset projectiles for monsters
-		if(owner instanceof Monster) {
-			projectile.z += ((Monster)owner).projectileOffset;
-		}
+    // ------------------------------------------------------------------------
+    // CROSS
+    // ------------------------------------------------------------------------
 
-		projectile.za = direction.y * speed;
-		if(hitSound != null) projectile.hitSound = hitSound;
+    private void castCross(
+        Entity owner,
+        Vector3 position,
+        Vector3 direction,
+        int count) {
 
-		return projectile;
-	}
+        /*
+         * CROSS divides shots evenly around the caster.
+         *
+         * 4 shots:
+         *
+         *       ^
+         *       |
+         *   <---+--->
+         *       |
+         *       v
+         *
+         * Higher counts create additional evenly spaced directions.
+         */
+
+        if(count < 4) {
+            count = 4;
+        }
+
+        float angleStep =
+            360f / (float)count;
+
+        for(int i = 0; i < count; i++) {
+
+            Vector3 shotDirection =
+                direction.cpy();
+
+            shotDirection.rotate(
+                angleStep * i,
+                0f,
+                1f,
+                0f);
+
+            spawnProjectile(
+                owner,
+                position,
+                shotDirection);
+        }
+    }
+
+
+    // ------------------------------------------------------------------------
+    // RANDOM
+    // ------------------------------------------------------------------------
+
+    private void castRandom(
+        Entity owner,
+        Vector3 position,
+        Vector3 direction,
+        int count,
+        float spread) {
+
+        for(int i = 0; i < count; i++) {
+
+            Vector3 shotDirection =
+                direction.cpy();
+
+            float angle =
+                (Game.rand.nextFloat() - 0.5f)
+                    * spread;
+
+            shotDirection.rotate(
+                angle,
+                0f,
+                1f,
+                0f);
+
+            spawnProjectile(
+                owner,
+                position,
+                shotDirection);
+        }
+    }
+
+
+    // ------------------------------------------------------------------------
+    // TIMED PATTERNS
+    // ------------------------------------------------------------------------
+
+    private void castTimedPattern(
+        Entity owner,
+        Vector3 position,
+        Vector3 direction,
+        FirePattern pattern,
+        int count,
+        float spread) {
+
+        /*
+         * IMPORTANT:
+         *
+         * Wand resets isChargedCast immediately after zap().
+         *
+         * Because delayed shots occur later, their damage must be
+         * rolled NOW while the charged state is still active.
+         */
+
+        int[] damageRolls =
+            new int[count];
+
+        for(int i = 0; i < count; i++) {
+            damageRolls[i] = doAttackRoll();
+        }
+
+        ProjectileSequence sequence =
+            new ProjectileSequence(
+                this,
+                owner,
+                position,
+                direction,
+                pattern,
+                count,
+                spread,
+                getCurrentPatternAngleStep(),
+                getCurrentProjectileDelay(),
+                damageRolls);
+
+        Game.GetLevel()
+            .SpawnNonCollidingEntity(sequence);
+    }
+
+
+    // ------------------------------------------------------------------------
+    // PROJECTILE CREATION
+    // ------------------------------------------------------------------------
+
+    protected MagicMissileProjectile makeProjectile(
+        Vector3 position,
+        Vector3 direction,
+        int dmg,
+        Entity owner) {
+
+        Player p = Game.instance.player;
+
+        float xOffset =
+            (owner == p) ? 0f : 0f;
+
+        float yOffset =
+            (owner == p) ? 0f : 0f;
+
+        float zOffset =
+            (owner == p) ? 0f : 0.31f;
+
+        MagicMissileProjectile projectile;
+
+        if(magicMissileProjectile == null) {
+
+            // Legacy Delver projectile setup
+            projectile =
+                new MagicMissileProjectile(
+                    position.x + xOffset,
+                    position.y + yOffset,
+                    position.z + zOffset,
+                    direction.x * speed,
+                    direction.z * speed,
+                    dmg,
+                    damageType,
+                    new Color(spellColor),
+                    owner);
+
+            if(explosion != null) {
+                projectile.explosion = explosion;
+            }
+
+            projectile.trailInterval =
+                trailInterval;
+
+            projectile.splashForce =
+                splashForce;
+
+            projectile.splashRadius =
+                splashRadius;
+
+            projectile.splashDamage =
+                splashDamage;
+
+            projectile.floating =
+                floating;
+
+            if(appearance != null) {
+
+                projectile.spriteAtlas =
+                    appearance.texAtlas;
+
+                projectile.tex =
+                    appearance.tex;
+            }
+        }
+
+        else {
+
+            // Modern data-driven projectile setup
+            projectile =
+                (MagicMissileProjectile)
+                    EntityManager.instance.Copy(
+                        magicMissileProjectile);
+
+            projectile.x =
+                position.x + xOffset;
+
+            projectile.y =
+                position.y + yOffset;
+
+            projectile.z =
+                position.z
+                    + zOffset
+                    + 0.1f;
+
+            projectile.xa =
+                direction.x * speed;
+
+            projectile.ya =
+                direction.z * speed;
+
+            projectile.owner =
+                owner;
+
+            projectile.damage =
+                dmg;
+
+            projectile.damageType =
+                damageType;
+
+            if(spellColor != null) {
+                projectile.color = spellColor;
+            }
+        }
+
+        // Offset monster projectiles vertically.
+        if(owner instanceof Monster) {
+
+            projectile.z +=
+                ((Monster)owner)
+                    .projectileOffset;
+        }
+
+        projectile.za =
+            direction.y * speed;
+
+        if(hitSound != null) {
+            projectile.hitSound =
+                hitSound;
+        }
+
+        return projectile;
+    }
 }
