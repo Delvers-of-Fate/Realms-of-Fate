@@ -1,0 +1,16 @@
+apply plugin: "java"
+apply plugin: "application"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+mainClassName = "com.realmsoffate.toolkit.ToolkitLauncher"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":Dungeoneer")
+    implementation "com.formdev:flatlaf:3.2.5"
+}
