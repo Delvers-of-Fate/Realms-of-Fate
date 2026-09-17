@@ -1,540 +1,217 @@
 package com.realmsoffate.toolkit.ui;
 
+import com.realmsoffate.toolkit.data.ItemsDataService;
+import com.realmsoffate.toolkit.data.SpellLibraryService;
+import com.realmsoffate.toolkit.data.MonsterDataService;
+import com.realmsoffate.toolkit.data.ClassDataService;
 import com.realmsoffate.toolkit.project.ModProject;
-import com.realmsoffate.toolkit.ui.editors.WeaponEditorPanel;
+import com.realmsoffate.toolkit.ui.items.ItemsPanel;
+import com.realmsoffate.toolkit.ui.items.SwordEditor;
+import com.realmsoffate.toolkit.ui.items.BowEditor;
+import com.realmsoffate.toolkit.ui.items.ItemTypeEditor;
+import com.realmsoffate.toolkit.ui.magic.MagicPanel;
+import com.realmsoffate.toolkit.ui.magic.SpellEditor;
+import com.realmsoffate.toolkit.ui.creatures.CreaturesPanel;
+import com.realmsoffate.toolkit.ui.creatures.MonsterEditor;
+import com.realmsoffate.toolkit.ui.characters.CharactersPanel;
+import com.realmsoffate.toolkit.ui.characters.ClassEditor;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
 
 public class WorkspacePanel extends JPanel {
+    public interface Listener {
+        void onBackHome();
+    }
 
     private final ModProject project;
+    private final ItemsDataService itemsData = new ItemsDataService();
+    private final SpellLibraryService spellLibrary = new SpellLibraryService();
+    private final MonsterDataService monsters = new MonsterDataService();
+    private final ClassDataService classes = new ClassDataService();
+    private final JPanel center = new JPanel(new BorderLayout());
 
-    private JButton testModButton;
-    private JButton createContentButton;
+    public WorkspacePanel(ModProject project, final Listener listener) {
+        this.project = project;
+        setLayout(new BorderLayout());
+        setBackground(ToolkitColors.BACKGROUND);
 
-    private JTextField searchField;
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(ToolkitColors.PANEL);
+        header.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+        JLabel projectName = new JLabel(project.getName());
+        projectName.setForeground(ToolkitColors.TEXT_PRIMARY);
+        projectName.setFont(projectName.getFont().deriveFont(Font.BOLD, 18f));
+        header.add(projectName, BorderLayout.WEST);
+        JButton home = new JButton("Home");
+        home.addActionListener(e -> listener.onBackHome());
+        header.add(home, BorderLayout.EAST);
 
-    private JPanel workspaceContainer;
+        JPanel sidebar = new JPanel();
+        sidebar.setBackground(ToolkitColors.PANEL);
+        sidebar.setPreferredSize(new Dimension(220, 0));
+        sidebar.setBorder(BorderFactory.createEmptyBorder(20, 14, 20, 14));
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+        JLabel contentLabel = new JLabel("CONTENT");
+        contentLabel.setForeground(ToolkitColors.TEXT_SECONDARY);
+        contentLabel.setFont(contentLabel.getFont().deriveFont(Font.BOLD, 12f));
+        sidebar.add(contentLabel);
+        sidebar.add(Box.createVerticalStrut(12));
 
-    public WorkspacePanel(
-        ModProject project
-    ) {
+        JButton items = navButton("Items");
+        JButton magic = navButton("Magic");
+        JButton creatures = navButton("Creatures");
+        JButton characters = navButton("Characters");
+        items.addActionListener(e -> showItems());
+        magic.addActionListener(e -> showMagic());
+        creatures.addActionListener(e -> showCreatures());
+        characters.addActionListener(e -> showCharacters());
+        sidebar.add(items);
+        sidebar.add(Box.createVerticalStrut(6));
+        sidebar.add(magic);
+        sidebar.add(Box.createVerticalStrut(6));
+        sidebar.add(creatures);
+        sidebar.add(Box.createVerticalStrut(6));
+        sidebar.add(characters);
 
-        this.project =
-            project;
-
-        setLayout(
-            new BorderLayout()
-        );
-
-        setBackground(
-            ToolkitColors.BACKGROUND
-        );
-
-        add(
-            createHeader(),
-            BorderLayout.NORTH
-        );
-
-        add(
-            createMainArea(),
-            BorderLayout.CENTER
-        );
-
-        add(
-            createFooter(),
-            BorderLayout.SOUTH
-        );
+        center.setOpaque(false);
+        add(header, BorderLayout.NORTH);
+        add(sidebar, BorderLayout.WEST);
+        add(center, BorderLayout.CENTER);
+        showItems();
     }
 
-    private JPanel createHeader() {
+    private void showItems() {
+        setCenter(new ItemsPanel(project, itemsData, new ItemsPanel.Listener() {
+            @Override
+            public void onNewSword() {
+                showSword(itemsData.createSwordDraft());
+            }
 
-        JPanel header =
-            new JPanel(
-                new BorderLayout()
-            );
+            @Override
+            public void onOpenSword(ItemsDataService.SwordEntry entry) {
+                showSword(entry);
+            }
 
-        header.setBackground(
-            ToolkitColors.PANEL
-        );
+            @Override
+            public void onNewBow() {
+                showBow(itemsData.createBowDraft());
+            }
 
-        header.setBorder(
-            new EmptyBorder(
-                12,
-                18,
-                12,
-                18
-            )
-        );
+            @Override
+            public void onOpenBow(ItemsDataService.BowEntry entry) {
+                showBow(entry);
+            }
 
-        JLabel toolkitTitle =
-            new JLabel(
-                "Realms of Fate Modding Toolkit"
-            );
-
-        toolkitTitle.setForeground(
-            ToolkitColors.TEXT_PRIMARY
-        );
-
-        toolkitTitle.setFont(
-            toolkitTitle.getFont().deriveFont(
-                Font.BOLD,
-                15f
-            )
-        );
-
-        JLabel projectName =
-            new JLabel(
-                project.getName(),
-                SwingConstants.CENTER
-            );
-
-        projectName.setForeground(
-            ToolkitColors.ACCENT
-        );
-
-        projectName.setFont(
-            projectName.getFont().deriveFont(
-                Font.BOLD,
-                16f
-            )
-        );
-
-        testModButton =
-            new JButton(
-                "Test Mod"
-            );
-
-        ToolkitStyles.stylePrimaryButton(
-            testModButton
-        );
-
-        header.add(
-            toolkitTitle,
-            BorderLayout.WEST
-        );
-
-        header.add(
-            projectName,
-            BorderLayout.CENTER
-        );
-
-        header.add(
-            testModButton,
-            BorderLayout.EAST
-        );
-
-        return header;
+            @Override public void onNewItem(ItemTypeEditor.Type type) { showItem(createDraft(type), type); }
+            @Override public void onOpenItem(ItemsDataService.ItemEntry entry, ItemTypeEditor.Type type) { showItem(entry, type); }
+        }));
     }
 
-    private JPanel createMainArea() {
 
-        JPanel main =
-            new JPanel(
-                new BorderLayout()
-            );
-
-        main.setBackground(
-            ToolkitColors.BACKGROUND
-        );
-
-        main.add(
-            createNavigationPanel(),
-            BorderLayout.WEST
-        );
-
-        workspaceContainer =
-            new JPanel(
-                new BorderLayout()
-            );
-
-        workspaceContainer.setBackground(
-            ToolkitColors.BACKGROUND
-        );
-
-        main.add(
-            workspaceContainer,
-            BorderLayout.CENTER
-        );
-
-        showProjectHome();
-
-        return main;
+    private void showCreatures() {
+        setCenter(new CreaturesPanel(project, monsters, new CreaturesPanel.Listener() {
+            @Override public void onNewMonster() { showMonster(monsters.createDraft()); }
+            @Override public void onOpenMonster(MonsterDataService.MonsterEntry entry) { showMonster(entry); }
+        }));
     }
 
-    private JPanel createNavigationPanel() {
-
-        JPanel panel =
-            new JPanel();
-
-        panel.setBackground(
-            ToolkitColors.PANEL
-        );
-
-        panel.setPreferredSize(
-            new Dimension(
-                220,
-                100
-            )
-        );
-
-        panel.setBorder(
-            new EmptyBorder(
-                18,
-                16,
-                18,
-                16
-            )
-        );
-
-        panel.setLayout(
-            new BoxLayout(
-                panel,
-                BoxLayout.Y_AXIS
-            )
-        );
-
-        JLabel contentTitle =
-            new JLabel(
-                "CONTENT"
-            );
-
-        ToolkitStyles.styleSectionTitle(
-            contentTitle
-        );
-
-        contentTitle.setAlignmentX(
-            Component.LEFT_ALIGNMENT
-        );
-
-        searchField =
-            new JTextField();
-
-        searchField.setToolTipText(
-            "Search project content"
-        );
-
-        searchField.setMaximumSize(
-            new Dimension(
-                Integer.MAX_VALUE,
-                32
-            )
-        );
-
-        searchField.setAlignmentX(
-            Component.LEFT_ALIGNMENT
-        );
-
-        createContentButton =
-            new JButton(
-                "+ Create"
-            );
-
-        ToolkitStyles.stylePrimaryButton(
-            createContentButton
-        );
-
-        createContentButton.setAlignmentX(
-            Component.LEFT_ALIGNMENT
-        );
-
-        panel.add(contentTitle);
-
-        panel.add(
-            Box.createVerticalStrut(12)
-        );
-
-        panel.add(searchField);
-
-        panel.add(
-            Box.createVerticalStrut(14)
-        );
-
-        panel.add(createContentButton);
-
-        panel.add(
-            Box.createVerticalStrut(20)
-        );
-
-        panel.add(
-            createNavButton("Items")
-        );
-
-        panel.add(
-            Box.createVerticalStrut(6)
-        );
-
-        panel.add(
-            createNavButton("Magic")
-        );
-
-        panel.add(
-            Box.createVerticalStrut(6)
-        );
-
-        panel.add(
-            createNavButton("Creatures")
-        );
-
-        panel.add(
-            Box.createVerticalStrut(28)
-        );
-
-        JLabel assetsTitle =
-            new JLabel(
-                "ASSETS"
-            );
-
-        ToolkitStyles.styleSectionTitle(
-            assetsTitle
-        );
-
-        assetsTitle.setAlignmentX(
-            Component.LEFT_ALIGNMENT
-        );
-
-        panel.add(assetsTitle);
-
-        panel.add(
-            Box.createVerticalStrut(10)
-        );
-
-        panel.add(
-            createNavButton(
-                "Sprite Sheets"
-            )
-        );
-
-        panel.add(
-            Box.createVerticalStrut(6)
-        );
-
-        panel.add(
-            createNavButton(
-                "Sounds"
-            )
-        );
-
-        panel.add(
-            Box.createVerticalGlue()
-        );
-
-        return panel;
+    private void showMonster(MonsterDataService.MonsterEntry entry) {
+        setCenter(new MonsterEditor(project, monsters, entry, new MonsterEditor.Listener() {
+            @Override public void onSaved() { showCreatures(); }
+            @Override public void onCancel() { showCreatures(); }
+        }));
     }
 
-    private JButton createNavButton(
-        String text
-    ) {
+    private void showCharacters() {
+        setCenter(new CharactersPanel(project, classes, new CharactersPanel.Listener() {
+            @Override public void onNewClass() { showClass(classes.createDraft(project)); }
+            @Override public void onOpenClass(ClassDataService.Entry entry) { showClass(entry); }
+        }));
+    }
 
-        JButton button =
-            new JButton(
-                text
-            );
+    private void showClass(ClassDataService.Entry entry) {
+        setCenter(new ClassEditor(project, classes, entry, new ClassEditor.Listener() {
+            @Override public void onSaved() { showCharacters(); }
+            @Override public void onCancel() { showCharacters(); }
+        }));
+    }
 
-        ToolkitStyles.styleSecondaryButton(
-            button
-        );
+    private void showMagic() {
+        setCenter(new MagicPanel(project, spellLibrary, new MagicPanel.Listener() {
+            @Override public void onNewSpell() { showSpell(spellLibrary.createDraft()); }
+            @Override public void onOpenSpell(SpellLibraryService.SpellDefinition spell) { showSpell(spell); }
+        }));
+    }
 
-        button.setHorizontalAlignment(
-            SwingConstants.LEFT
-        );
+    private void showSpell(SpellLibraryService.SpellDefinition spell) {
+        setCenter(new SpellEditor(project, spellLibrary, spell, new SpellEditor.Listener() {
+            @Override public void onSaved() { showMagic(); }
+            @Override public void onCancel() { showMagic(); }
+        }));
+    }
 
-        button.setMaximumSize(
-            new Dimension(
-                Integer.MAX_VALUE,
-                34
-            )
-        );
+    private void showSword(ItemsDataService.SwordEntry entry) {
+        setCenter(new SwordEditor(project, itemsData, entry, new SwordEditor.Listener() {
+            @Override
+            public void onSaved() {
+                showItems();
+            }
 
-        button.setAlignmentX(
-            Component.LEFT_ALIGNMENT
-        );
+            @Override
+            public void onCancel() {
+                showItems();
+            }
+        }));
+    }
 
+
+    private void showBow(ItemsDataService.BowEntry entry) {
+        setCenter(new BowEditor(project, itemsData, entry, new BowEditor.Listener() {
+            @Override
+            public void onSaved() { showItems(); }
+
+            @Override
+            public void onCancel() { showItems(); }
+        }));
+    }
+
+
+    private ItemsDataService.ItemEntry createDraft(ItemTypeEditor.Type t) {
+        switch(t) {
+            case GUN: return itemsData.createGunDraft();
+            case WAND: return itemsData.createWandDraft();
+            case ARMOR: return itemsData.createArmorDraft();
+            case POTION: return itemsData.createPotionDraft();
+            case SCROLL: return itemsData.createScrollDraft();
+            case FOOD: return itemsData.createFoodDraft();
+            case DECORATION: return itemsData.createDecorationDraft();
+            case UNIQUE: return itemsData.createUniqueDraft();
+            default: return itemsData.createJunkDraft();
+        }
+    }
+    private void showItem(ItemsDataService.ItemEntry entry, ItemTypeEditor.Type type) {
+        setCenter(new ItemTypeEditor(project, itemsData, entry, type, new ItemTypeEditor.Listener() { public void onSaved(){showItems();} public void onCancel(){showItems();} }));
+    }
+
+    private void setCenter(JPanel panel) {
+        center.removeAll();
+        center.add(panel, BorderLayout.CENTER);
+        center.revalidate();
+        center.repaint();
+    }
+
+    private JButton navButton(String text) {
+        JButton button = new JButton(text);
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        button.setHorizontalAlignment(JButton.LEFT);
         return button;
-    }
-
-    public void showProjectHome() {
-
-        workspaceContainer.removeAll();
-
-        JPanel wrapper =
-            new JPanel(
-                new GridBagLayout()
-            );
-
-        wrapper.setBackground(
-            ToolkitColors.BACKGROUND
-        );
-
-        JPanel content =
-            new JPanel();
-
-        content.setOpaque(false);
-
-        content.setLayout(
-            new BoxLayout(
-                content,
-                BoxLayout.Y_AXIS
-            )
-        );
-
-        JLabel projectTitle =
-            new JLabel(
-                project.getName()
-            );
-
-        projectTitle.setAlignmentX(
-            Component.CENTER_ALIGNMENT
-        );
-
-        projectTitle.setForeground(
-            ToolkitColors.TEXT_PRIMARY
-        );
-
-        projectTitle.setFont(
-            projectTitle.getFont().deriveFont(
-                Font.BOLD,
-                28f
-            )
-        );
-
-        JLabel emptyMessage =
-            new JLabel(
-                "No content yet."
-            );
-
-        emptyMessage.setAlignmentX(
-            Component.CENTER_ALIGNMENT
-        );
-
-        ToolkitStyles.styleDescription(
-            emptyMessage
-        );
-
-        JButton createButton =
-            new JButton(
-                "Create Content"
-            );
-
-        ToolkitStyles.stylePrimaryButton(
-            createButton
-        );
-
-        createButton.setAlignmentX(
-            Component.CENTER_ALIGNMENT
-        );
-
-        createButton.addActionListener(
-            e -> createContentButton.doClick()
-        );
-
-        content.add(projectTitle);
-
-        content.add(
-            Box.createVerticalStrut(10)
-        );
-
-        content.add(emptyMessage);
-
-        content.add(
-            Box.createVerticalStrut(22)
-        );
-
-        content.add(createButton);
-
-        wrapper.add(content);
-
-        workspaceContainer.add(
-            wrapper,
-            BorderLayout.CENTER
-        );
-
-        refreshWorkspace();
-    }
-
-    public void showWeaponEditor() {
-
-        workspaceContainer.removeAll();
-
-        WeaponEditorPanel weaponEditor =
-            new WeaponEditorPanel();
-
-        workspaceContainer.add(
-            weaponEditor,
-            BorderLayout.CENTER
-        );
-
-        refreshWorkspace();
-    }
-
-    private void refreshWorkspace() {
-
-        workspaceContainer.revalidate();
-        workspaceContainer.repaint();
-    }
-
-    private JPanel createFooter() {
-
-        JPanel footer =
-            new JPanel(
-                new BorderLayout()
-            );
-
-        footer.setBackground(
-            ToolkitColors.PANEL
-        );
-
-        footer.setBorder(
-            new EmptyBorder(
-                8,
-                16,
-                8,
-                16
-            )
-        );
-
-        JLabel status =
-            new JLabel(
-                "Ready"
-            );
-
-        status.setForeground(
-            ToolkitColors.SUCCESS
-        );
-
-        JLabel version =
-            new JLabel(
-                "Toolkit v0.1.0"
-            );
-
-        version.setForeground(
-            ToolkitColors.TEXT_SECONDARY
-        );
-
-        footer.add(
-            status,
-            BorderLayout.WEST
-        );
-
-        footer.add(
-            version,
-            BorderLayout.EAST
-        );
-
-        return footer;
-    }
-
-    public JButton getTestModButton() {
-        return testModButton;
-    }
-
-    public JButton getCreateContentButton() {
-        return createContentButton;
-    }
-
-    public JTextField getSearchField() {
-        return searchField;
     }
 }

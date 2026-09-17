@@ -1,0 +1,23 @@
+{
+"id": "new_class",
+"displayName": "New Class",
+"hp": 100,
+"mp": 20,
+"atk": 10,
+"def": 10,
+"dex": 10,
+"spd": 10,
+"mag": 10,
+"end": 10,
+"jumpHeight": 0.05000000074505806,
+"sprintSpeedMultiplier": 1.649999976158142,
+"crouchSpeedMultiplier": 0.5,
+"manaRegenRate": 0.10000000149011612,
+"manaRegenerationEnabled": true,
+"resistances": {
+	"fire": 0.0
+},
+"startingItems": [
+	"Test Lamp"
+]
+}

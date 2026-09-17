@@ -1,25 +1,24 @@
 package com.realmsoffate.toolkit;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-public class ToolkitLauncher {
+public final class ToolkitLauncher {
+    private ToolkitLauncher() {}
 
     public static void main(String[] args) {
+        FlatDarkLaf.setup();
+        UIManager.put("Component.arc", 8);
+        UIManager.put("Button.arc", 8);
+        UIManager.put("TextComponent.arc", 6);
 
-        try {
-            UIManager.setLookAndFeel(new FlatDarkLaf());
-        }
-        catch (Exception e) {
-            System.err.println("Failed to initialize FlatLaf.");
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> {
-            ToolkitWindow window = new ToolkitWindow();
-            window.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                ToolkitWindow window = new ToolkitWindow();
+                window.setVisible(true);
+            }
         });
     }
 }

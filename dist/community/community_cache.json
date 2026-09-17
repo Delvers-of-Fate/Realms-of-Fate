@@ -1,0 +1,18 @@
+{
+"events": {
+	"blackstone_fortress": {
+		"enabled": true,
+		"status": "ACTIVE",
+		"phase": 1,
+		"progress": {
+			"kills": 5000,
+			"requiredKills": 10000,
+			"requiredFloors": 1500
+		},
+		"announcement": {
+			"title": "The Siege Begins",
+			"message": "The forces of the realm gather before Blackstone Fortress."
+		}
+	}
+}
+}

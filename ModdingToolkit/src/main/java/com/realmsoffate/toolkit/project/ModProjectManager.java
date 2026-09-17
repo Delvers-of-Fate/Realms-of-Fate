@@ -1,262 +1,213 @@
 package com.realmsoffate.toolkit.project;
 
-import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.JsonWriter;
+import com.realmsoffate.toolkit.json.JsonTree;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
-public final class ModProjectManager {
+public class ModProjectManager {
 
-    private ModProjectManager() {
+    /**
+     * Creates a brand-new mod project.
+     *
+     * Only the mod root and .rof-toolkit metadata are created here.
+     * Other folders such as data/ and textures/ are created lazily
+     * when the toolkit actually needs them.
+     */
+    public ModProject createProject(String name, File root) throws IOException {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mod name cannot be empty.");
+        }
+
+        if (root == null) {
+            throw new IllegalArgumentException("Mod location cannot be empty.");
+        }
+
+        name = name.trim();
+
+        File modRoot = new File(root, name);
+
+        if (modRoot.exists()) {
+            throw new IOException(
+                "A folder named \"" + name + "\" already exists in that location."
+            );
+        }
+
+        if (!modRoot.mkdirs()) {
+            throw new IOException(
+                "Could not create mod folder: " + modRoot.getAbsolutePath()
+            );
+        }
+
+        ModProject project = new ModProject(name, modRoot);
+
+        File toolkitDirectory = project.getToolkitDirectory();
+
+        if (!toolkitDirectory.exists() && !toolkitDirectory.mkdirs()) {
+            throw new IOException(
+                "Could not create .rof-toolkit metadata folder."
+            );
+        }
+
+        writeMetadata(project);
+
+        return project;
     }
 
-    public static ModProject createProject(
-        String name,
-        String internalId,
-        String author,
-        String description,
-        File parentDirectory
-    ) throws ProjectCreationException {
+    /**
+     * Opens an existing Realms of Fate / Delver mod.
+     *
+     * The selected mod does NOT need to have been created by the toolkit.
+     *
+     * If .rof-toolkit/project.json already exists, the toolkit reads the
+     * stored project name from it.
+     *
+     * If the metadata does not exist, the toolkit adopts the existing mod
+     * non-destructively by creating only:
+     *
+     * .rof-toolkit/project.json
+     *
+     * Existing data, textures, sounds and other mod files are not modified
+     * by simply opening the project.
+     */
+    public ModProject openProject(File root) throws IOException {
+        if (root == null) {
+            throw new IllegalArgumentException("Mod folder cannot be empty.");
+        }
 
-        validateParentDirectory(
-            parentDirectory
-        );
-
-        File projectDirectory =
-            new File(
-                parentDirectory,
-                internalId
-            );
-
-        if (projectDirectory.exists()) {
-
-            throw new ProjectCreationException(
-                "A folder named \""
-                    + internalId
-                    + "\" already exists in the selected location."
+        if (!root.exists()) {
+            throw new IOException(
+                "The selected mod folder does not exist."
             );
         }
 
-        ModProject project =
-            new ModProject(
-                name,
-                internalId,
-                author,
-                description,
-                projectDirectory
-            );
-
-        try {
-
-            createProjectDirectories(
-                project
-            );
-
-            writeProjectMetadata(
-                project
-            );
-
-            return project;
-
-        }
-        catch (Exception e) {
-
-            deleteDirectory(
-                projectDirectory
-            );
-
-            throw new ProjectCreationException(
-                "The mod project could not be created.",
-                e
-            );
-        }
-    }
-
-    private static void validateParentDirectory(
-        File parentDirectory
-    ) throws ProjectCreationException {
-
-        if (parentDirectory == null) {
-
-            throw new ProjectCreationException(
-                "No project folder was selected."
+        if (!root.isDirectory()) {
+            throw new IOException(
+                "The selected path is not a folder."
             );
         }
 
-        if (
-            parentDirectory.exists()
-                && !parentDirectory.isDirectory()
-        ) {
+        File toolkitDirectory = new File(root, ".rof-toolkit");
+        File metadata = new File(toolkitDirectory, "project.json");
 
-            throw new ProjectCreationException(
-                "The selected project location is not a folder."
-            );
-        }
+        // Default to the actual mod folder name.
+        String name = root.getName();
 
-        if (
-            !parentDirectory.exists()
-                && !parentDirectory.mkdirs()
-        ) {
+        /*
+         * If toolkit metadata already exists, attempt to read the
+         * stored project name.
+         *
+         * This uses FileInputStream because the LibGDX version used
+         * by Delver 1.4.0 does not support JsonReader.parse(File).
+         */
+        if (metadata.isFile()) {
+            try (FileInputStream input = new FileInputStream(metadata)) {
+                JsonValue json = new JsonReader().parse(input);
 
-            throw new ProjectCreationException(
-                "The selected project folder could not be created."
-            );
-        }
-    }
+                JsonValue nameValue = json.get("name");
 
-    private static void createProjectDirectories(
-        ModProject project
-    ) throws ProjectCreationException {
+                if (nameValue != null
+                    && nameValue.isString()
+                    && !nameValue.asString().trim().isEmpty()) {
 
-        createDirectory(
-            project.getProjectDirectory(),
-            "project"
-        );
-
-        createDirectory(
-            project.getToolkitDirectory(),
-            "toolkit metadata"
-        );
-
-        createDirectory(
-            project.getDataDirectory(),
-            "data"
-        );
-
-        createDirectory(
-            project.getLevelsDirectory(),
-            "levels"
-        );
-
-        createDirectory(
-            project.getTexturesDirectory(),
-            "textures"
-        );
-    }
-
-    private static void createDirectory(
-        File directory,
-        String description
-    ) throws ProjectCreationException {
-
-        if (directory.exists()) {
-
-            if (!directory.isDirectory()) {
-
-                throw new ProjectCreationException(
-                    "Could not create "
-                        + description
-                        + " directory because a file already exists at:\n"
-                        + directory.getAbsolutePath()
-                );
-            }
-
-            return;
-        }
-
-        if (!directory.mkdirs()) {
-
-            throw new ProjectCreationException(
-                "Could not create "
-                    + description
-                    + " directory:\n"
-                    + directory.getAbsolutePath()
-            );
-        }
-    }
-
-    private static void writeProjectMetadata(
-        ModProject project
-    ) throws IOException {
-
-        Json json =
-            new Json();
-
-        json.setOutputType(
-            JsonWriter.OutputType.json
-        );
-
-        ProjectMetadata metadata =
-            new ProjectMetadata();
-
-        metadata.toolkitVersion =
-            "0.1.0";
-
-        metadata.name =
-            project.getName();
-
-        metadata.internalId =
-            project.getInternalId();
-
-        metadata.author =
-            project.getAuthor();
-
-        metadata.description =
-            project.getDescription();
-
-        String output =
-            json.prettyPrint(
-                metadata
-            );
-
-        FileWriter writer =
-            new FileWriter(
-                project.getProjectFile()
-            );
-
-        try {
-
-            writer.write(
-                output
-            );
-
-        }
-        finally {
-
-            writer.close();
-        }
-    }
-
-    private static void deleteDirectory(
-        File file
-    ) {
-
-        if (
-            file == null
-                || !file.exists()
-        ) {
-            return;
-        }
-
-        if (file.isDirectory()) {
-
-            File[] children =
-                file.listFiles();
-
-            if (children != null) {
-
-                for (File child : children) {
-
-                    deleteDirectory(
-                        child
-                    );
+                    name = nameValue.asString().trim();
                 }
             }
+            catch (Exception ignored) {
+                /*
+                 * A damaged toolkit metadata file should not prevent
+                 * an otherwise valid Delver mod from being opened.
+                 *
+                 * In that case we simply keep using the folder name.
+                 */
+            }
         }
 
-        file.delete();
+        ModProject project = new ModProject(name, root);
+
+        /*
+         * Adopt an existing mod non-destructively.
+         *
+         * We create only the toolkit's own metadata directory.
+         */
+        if (!toolkitDirectory.exists()) {
+            if (!toolkitDirectory.mkdirs()) {
+                throw new IOException(
+                    "Could not create .rof-toolkit metadata in the selected mod."
+                );
+            }
+        }
+
+        if (!toolkitDirectory.isDirectory()) {
+            throw new IOException(
+                ".rof-toolkit exists but is not a directory."
+            );
+        }
+
+        /*
+         * If this is a normal Delver mod that has never been opened
+         * by the toolkit before, create its toolkit metadata.
+         */
+        if (!metadata.isFile()) {
+            writeMetadata(project);
+        }
+
+        return project;
     }
 
-    private static class ProjectMetadata {
+    /**
+     * Writes the small toolkit-only project metadata file.
+     */
+    private void writeMetadata(ModProject project) throws IOException {
+        JsonValue root = new JsonValue(JsonValue.ValueType.object);
 
-        public String toolkitVersion;
+        JsonValue formatVersion = new JsonValue(1L);
+        formatVersion.name = "formatVersion";
+        JsonTree.append(root, formatVersion);
 
-        public String name;
-        public String internalId;
+        JsonValue projectName = new JsonValue(project.getName());
+        projectName.name = "name";
+        JsonTree.append(root, projectName);
 
-        public String author;
-        public String description;
+        File toolkitDirectory = project.getToolkitDirectory();
+
+        if (!toolkitDirectory.exists()) {
+            if (!toolkitDirectory.mkdirs()) {
+                throw new IOException(
+                    "Could not create toolkit metadata directory."
+                );
+            }
+        }
+
+        if (!toolkitDirectory.isDirectory()) {
+            throw new IOException(
+                "Toolkit metadata path exists but is not a directory."
+            );
+        }
+
+        File metadata = new File(
+            toolkitDirectory,
+            "project.json"
+        );
+
+        try (Writer writer = new OutputStreamWriter(
+            new FileOutputStream(metadata),
+            StandardCharsets.UTF_8)) {
+
+            writer.write(
+                root.prettyPrint(
+                    JsonWriter.OutputType.json,
+                    2
+                )
+            );
+        }
     }
 }

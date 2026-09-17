@@ -1,3 +1,4 @@
 include 'DungeoneerDesktop', 'Dungeoneer', 'DelvEdit', 'DiscordBot'
 
 include 'ModdingToolkit'
+include 'ModdingToolkit'

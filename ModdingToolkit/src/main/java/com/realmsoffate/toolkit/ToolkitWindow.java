@@ -1,228 +1,97 @@
 package com.realmsoffate.toolkit;
 
-import com.realmsoffate.toolkit.content.ContentType;
-
 import com.realmsoffate.toolkit.project.ModProject;
 import com.realmsoffate.toolkit.project.ModProjectManager;
-import com.realmsoffate.toolkit.project.ProjectCreationException;
-
+import com.realmsoffate.toolkit.project.RecentProjects;
 import com.realmsoffate.toolkit.ui.HomePanel;
+import com.realmsoffate.toolkit.ui.NewModDialog;
+import com.realmsoffate.toolkit.ui.OpenModDialog;
 import com.realmsoffate.toolkit.ui.WorkspacePanel;
 
-import com.realmsoffate.toolkit.ui.dialogs.CreateContentDialog;
-import com.realmsoffate.toolkit.ui.dialogs.NewModDialog;
-
-import javax.swing.*;
-
-import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import java.awt.Dimension;
 import java.io.File;
 
 public class ToolkitWindow extends JFrame {
-
-    private HomePanel homePanel;
-    private WorkspacePanel workspacePanel;
-
+    private final ModProjectManager projectManager = new ModProjectManager();
     private ModProject currentProject;
 
     public ToolkitWindow() {
-
-        configureWindow();
-
-        showHomeScreen();
-    }
-
-    private void configureWindow() {
-
-        setTitle(
-            "Realms of Fate Modding Toolkit"
-        );
-
-        setDefaultCloseOperation(
-            JFrame.EXIT_ON_CLOSE
-        );
-
-        setSize(
-            1200,
-            760
-        );
-
-        setMinimumSize(
-            new Dimension(
-                950,
-                650
-            )
-        );
-
+        super("Realms of Fate Modding Toolkit");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setMinimumSize(new Dimension(1000, 650));
+        setSize(1180, 760);
         setLocationRelativeTo(null);
+        showHome();
     }
 
-    private void showHomeScreen() {
-
-        currentProject =
-            null;
-
-        homePanel =
-            new HomePanel();
-
-        homePanel
-            .getCreateModButton()
-            .addActionListener(
-                e -> showNewModDialog()
-            );
-
-        setContentPane(
-            homePanel
-        );
-
-        setTitle(
-            "Realms of Fate Modding Toolkit"
-        );
-
+    public void showHome() {
+        currentProject = null;
+        setTitle("Realms of Fate Modding Toolkit");
+        setContentPane(new HomePanel(new HomePanel.Listener() {
+            @Override
+            public void onCreateMod() { createMod(); }
+            @Override
+            public void onOpenMod() { openMod(); }
+            @Override
+            public void onOpenRecent(File directory) { openMod(directory); }
+        }));
         revalidate();
         repaint();
     }
 
-    private void showNewModDialog() {
-
-        NewModDialog dialog =
-            new NewModDialog(
-                this
-            );
-
+    private void createMod() {
+        NewModDialog dialog = new NewModDialog(this);
         dialog.setVisible(true);
-
-        if (!dialog.isApproved()) {
-            return;
-        }
+        if (!dialog.isApproved()) return;
 
         try {
-
-            File parentDirectory =
-                new File(
-                    dialog.getProjectFolder()
-                );
-
-            ModProject project =
-                ModProjectManager.createProject(
-                    dialog.getModName(),
-                    dialog.getInternalId(),
-                    dialog.getAuthor(),
-                    dialog.getDescription(),
-                    parentDirectory
-                );
-
-            showWorkspace(
-                project
+            currentProject = projectManager.createProject(
+                    dialog.getProjectName(),
+                    dialog.getParentDirectory()
             );
-
+            RecentProjects.remember(currentProject.getRootDirectory());
+            showWorkspace(currentProject);
         }
-        catch (
-            ProjectCreationException e
-        ) {
-
+        catch (Exception ex) {
             JOptionPane.showMessageDialog(
-                this,
-                e.getMessage(),
-                "Could Not Create Mod",
-                JOptionPane.ERROR_MESSAGE
+                    this,
+                    ex.getMessage(),
+                    "Could Not Create Mod",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
 
-    private void showWorkspace(
-        ModProject project
-    ) {
 
-        currentProject =
-            project;
+    private void openMod() {
+        OpenModDialog dialog = new OpenModDialog(this);
+        dialog.setVisible(true);
+        if (!dialog.isApproved()) return;
+        openMod(dialog.getSelectedDirectory());
+    }
 
-        workspacePanel =
-            new WorkspacePanel(
-                project
-            );
+    private void openMod(File directory) {
+        try {
+            currentProject = projectManager.openProject(directory);
+            RecentProjects.remember(currentProject.getRootDirectory());
+            showWorkspace(currentProject);
+        }
+        catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Could Not Open Mod", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
-        workspacePanel
-            .getCreateContentButton()
-            .addActionListener(
-                e -> showCreateContentDialog()
-            );
-
-        workspacePanel
-            .getTestModButton()
-            .addActionListener(
-                e -> showTestModPlaceholder()
-            );
-
-        setContentPane(
-            workspacePanel
-        );
-
-        setTitle(
-            "Realms of Fate Modding Toolkit - "
-                + project.getName()
-        );
-
+    private void showWorkspace(ModProject project) {
+        setTitle(project.getName() + " - Realms of Fate Modding Toolkit");
+        setContentPane(new WorkspacePanel(project, new WorkspacePanel.Listener() {
+            @Override
+            public void onBackHome() {
+                showHome();
+            }
+        }));
         revalidate();
         repaint();
-    }
-
-    private void showCreateContentDialog() {
-
-        if (
-            currentProject == null
-                || workspacePanel == null
-        ) {
-            return;
-        }
-
-        CreateContentDialog dialog =
-            new CreateContentDialog(
-                this
-            );
-
-        dialog.setVisible(true);
-
-        if (!dialog.hasSelection()) {
-            return;
-        }
-
-        ContentType selectedType =
-            dialog.getSelectedType();
-
-        handleContentTypeSelection(
-            selectedType
-        );
-    }
-
-    private void handleContentTypeSelection(
-        ContentType type
-    ) {
-
-        if (
-            type == ContentType.WEAPON
-        ) {
-
-            workspacePanel.showWeaponEditor();
-
-            return;
-        }
-
-        JOptionPane.showMessageDialog(
-            this,
-            type.getDisplayName()
-                + " editor will be added later.",
-            "Coming Soon",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    private void showTestModPlaceholder() {
-
-        JOptionPane.showMessageDialog(
-            this,
-            "Test Mod will be connected to Delver later.",
-            "Test Mod",
-            JOptionPane.INFORMATION_MESSAGE
-        );
     }
 }

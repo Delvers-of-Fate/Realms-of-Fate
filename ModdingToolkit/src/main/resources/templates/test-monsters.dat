@@ -1,0 +1,37 @@
+{
+  "$schema": "http://delverengine.com/jsonschema/current/managers/MonsterManager.schema.json",
+  "monsters": {
+    "TEST": [
+      {
+        "class": "com.interrupt.dungeoneer.entities.Monster",
+        "name": "SLIME",
+        "spriteAtlas": "entity",
+        "tex": 0,
+        "maxHp": 4,
+        "hp": 4,
+        "maxMp": 0,
+        "mp": 0,
+        "atk": 4,
+        "speed": 0.003000000026077032,
+        "reach": 0.6000000238418579,
+        "projectileAttackMinDistance": 0.0,
+        "projectileAttackMaxDistance": 30.0,
+        "projectileAttackTime": 1.0,
+        "projectileOffset": 0.0,
+        "damageType": "PHYSICAL",
+        "hostile": true,
+        "chasetarget": false,
+        "wanders": true,
+        "ranged": false,
+        "canOpenDoors": false,
+        "hasAttackAnim": false,
+        "givesExp": true,
+        "alertSound": "mobs/slime/en_slime_alert_01.mp3,mobs/slime/en_slime_alert_02.mp3,mobs/slime/en_slime_alert_03.mp3",
+        "attackSound": "mobs/slime/en_slime_attack_01.mp3,mobs/slime/en_slime_attack_02.mp3,mobs/slime/en_slime_attack_03.mp3",
+        "hurtSound": "mobs/slime/en_slime_hurt_01.mp3,mobs/slime/en_slime_hurt_02.mp3,mobs/slime/en_slime_hurt_03.mp3",
+        "dieSound": "mobs/slime/en_slime_die_01.mp3,mobs/slime/en_slime_die_02.mp3,mobs/slime/en_slime_die_03.mp3",
+        "idleSound": "mobs/slime/en_slime_idle_01.mp3,mobs/slime/en_slime_idle_02.mp3,mobs/slime/en_slime_idle_03.mp3"
+      }
+    ]
+  }
+}

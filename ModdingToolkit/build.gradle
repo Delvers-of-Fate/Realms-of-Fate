@@ -4,6 +4,10 @@ apply plugin: "application"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 mainClassName = "com.realmsoffate.toolkit.ToolkitLauncher"
 
 repositories {
@@ -11,6 +15,39 @@ repositories {
 }
 
 dependencies {
-    implementation project(":Dungeoneer")
+    // Delver's data files use LibGDX JsonValue/JsonReader. The toolkit does not
+    // need to depend on the whole game project just to edit those documents.
+    implementation "com.badlogicgames.gdx:gdx:1.9.9"
     implementation "com.formdev:flatlaf:3.2.5"
+}
+
+jar {
+    manifest {
+        attributes("Main-Class": mainClassName)
+    }
+}
+
+// Runnable fat JAR for distributing the toolkit by itself.
+task dist(type: Jar) {
+    archiveName = "Realms-of-Fate-Modding-Toolkit.jar"
+
+    manifest {
+        attributes("Main-Class": mainClassName)
+    }
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    with jar
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// No JUnit dependency is required; this is an executable regression suite.
+task regressionTest(type: JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    main = "com.realmsoffate.toolkit.json.JsonPersistenceRegressionTest"
 }
