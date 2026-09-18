@@ -423,7 +423,7 @@ public class Player extends Actor {
             resistance += classResistances.get(damageType);
         }
 
-        // Equipment resistance
+        /** Equipment resistance */
         if(equippedItems != null) {
             for(Item item : equippedItems.values()) {
                 if(item instanceof Armor) {
@@ -433,6 +433,7 @@ public class Player extends Actor {
             }
         }
 
+        /** Max Resistance value (set at 90% */
         return Math.min(Math.max(resistance, 0f), 0.90f);
     }
 

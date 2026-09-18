@@ -16,7 +16,7 @@
 	"splashForce": 0.10000000149011612,
 	"splashRadius": 3,
 	"shotAccuracy": 1,
-	"projectileCount": 5,
+	"projectileCount": 3,
 	"chargedProjectileCount": 1,
 	"projectileSpread": 0,
 	"chargedProjectileSpread": 0.20000000298023224,
@@ -29,7 +29,7 @@
 	"splashDamage": false,
 	"floating": true,
 	"damageType": "FIRE",
-	"firePattern": "VOLLEY",
+	"firePattern": "SPREAD",
 	"chargedFirePattern": "BURST",
 	"magicMissileProjectile": {
 		"class": "com.interrupt.dungeoneer.entities.projectiles.MagicMissileProjectile",
@@ -60,7 +60,7 @@
 		"splashDamage": false,
 		"floating": true,
 		"fullbrite": true,
-		"movement": "HOMING",
+		"movement": "STRAIGHT",
 		"haloMode": "BOTH"
 	},
 	"spellColor": {

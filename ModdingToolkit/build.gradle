@@ -1,53 +1,40 @@
-apply plugin: "java"
-apply plugin: "application"
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.realmsoffate'
+version = '1.0.0'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
-mainClassName = "com.realmsoffate.toolkit.ToolkitLauncher"
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    // Delver's data files use LibGDX JsonValue/JsonReader. The toolkit does not
-    // need to depend on the whole game project just to edit those documents.
-    implementation "com.badlogicgames.gdx:gdx:1.9.9"
-    implementation "com.formdev:flatlaf:3.2.5"
+mainClassName = 'com.realmsoffate.moddingtoolkit.ModdingToolkitApp'
+
+compileJava {
+    options.encoding = 'UTF-8'
 }
 
 jar {
+    baseName = 'ModdingToolkit'
+    version = null
     manifest {
-        attributes("Main-Class": mainClassName)
+        attributes 'Main-Class': mainClassName
     }
 }
 
-// Runnable fat JAR for distributing the toolkit by itself.
-task dist(type: Jar) {
-    archiveName = "Realms-of-Fate-Modding-Toolkit.jar"
-
-    manifest {
-        attributes("Main-Class": mainClassName)
+task dist(type: Zip, dependsOn: jar) {
+    baseName = 'ModdingToolkit'
+    version = null
+    destinationDir = file("$buildDir/distributions")
+    into('ModdingToolkit') {
+        from jar.archivePath
+        from 'README.md'
+        from 'run.bat'
+        from 'run.sh'
     }
-
-    from {
-        configurations.runtimeClasspath.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-
-    with jar
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-// No JUnit dependency is required; this is an executable regression suite.
-task regressionTest(type: JavaExec) {
-    dependsOn testClasses
-    classpath = sourceSets.test.runtimeClasspath
-    main = "com.realmsoffate.toolkit.json.JsonPersistenceRegressionTest"
 }

@@ -1,55 +1,61 @@
-# Realms of Fate Modding Toolkit
+# ModdingToolkit
 
-A desktop editor for Realms of Fate / Delver JSON data.
+A clean, lossless-first JSON / Delver `.dat` editor for Realms of Fate.
 
-## Current design
+## Requirements
+- Java 8+
+- Compatible with older Gradle versions used by the Delver project
 
-The UI remains intentionally friendly and specialized, but the JSON document is now the source of truth.
-
-The persistence stack is:
-
-```
-UI editors
-    -> data views (items, monsters, spells, classes)
-        -> JsonTree safe mutations
-            -> JsonDocumentService
-                -> .json / .dat
-```
-
-The data layer does **not** rebuild items from a schema or whitelist when saving. Existing objects are copied in full, edited in place, and written back with unknown fields preserved.
-
-## Save guarantees
-
-`JsonDocumentService` now:
-
-- repairs LibGDX `JsonValue` parent / sibling / size links before serialization;
-- validates the generated JSON before replacing the original file;
-- writes to a temporary file first;
-- parses the exact temporary bytes back for verification;
-- creates `<filename>.bak` before replacing an existing file;
-- uses an atomic move when the filesystem supports it.
-
-`JsonTree` is the only place that should add, remove, replace, or move `JsonValue` children. This is important because Delver's LibGDX 1.9.9 `JsonValue.addChild` does not maintain all sibling bookkeeping used by `remove`.
-
-## Regression test
-
-`JsonPersistenceRegressionTest` covers the original data-loss bug and verifies:
-
-- removing a middle field from a copied object does not delete neighboring fields;
-- a no-edit deep-copy round trip preserves the document data;
-- editing one property preserves unknown nested fields;
-- saving an item replaces the complete object and creates a backup.
-
-Run it with Gradle:
-
+## Run from source
 ```bash
-gradle regressionTest
+gradle run
 ```
 
-## Build
-
+## Build distribution
 ```bash
 gradle dist
 ```
+Output: `build/distributions/ModdingToolkit.zip`
 
-The runnable JAR is written to `build/libs/Realms-of-Fate-Modding-Toolkit.jar`.
+## Design principles
+- The JSON tree is the source of truth.
+- Unknown fields are preserved and editable.
+- No rigid item/monster DTOs are used for serialization.
+- Files are parsed before saving and written through a temporary file.
+- A `.bak` backup is created before replacing an existing file.
+
+## Current features
+- Open `.json` and `.dat` files.
+- Three-pane data-file / entry / editor layout.
+- Automatic entry discovery for root arrays and common object-wrapped arrays.
+- Recursive form editor for objects, arrays, strings, numbers, booleans and null.
+- Add, rename and delete object properties.
+- Add, duplicate and delete array values / entries.
+- Raw JSON mode with syntax validation and Apply action.
+- Search/filter entries.
+- Undo / redo snapshots.
+- Dirty-state tracking and save prompts.
+- Safe save with backup + temp-file replacement.
+- Dark Realms of Fate-oriented desktop UI.
+
+This first version intentionally keeps Delver-specific metadata optional. The editor remains usable when the engine gains fields the toolkit has never seen before.
+
+## UX pass
+- Full dark Swing theme, including menus, dialogs, file chooser, tooltips, text controls, lists, and editor surfaces.
+- Friendly labels and inline help for common Delver properties while retaining the exact JSON property name as a tooltip.
+- Unknown/custom properties remain visible and editable and are explicitly described as preserved engine properties.
+- Beginner-friendly value type names and Yes/No boolean creation.
+
+## Asset picker pass
+- Numeric `tex` fields now include a **Pick Sprite...** button.
+- The sprite picker can open PNG/JPG sprite sheets, split them into a configurable tile grid, preview every tile, and write the selected tile index back to `tex`.
+- Tile width/height can be adjusted for different atlases.
+- The chosen sprite sheet is intentionally preview-only: the picker does not invent or overwrite atlas/path fields in the JSON.
+- Advanced/raw JSON editing remains available at all times.
+
+## Simple mod-folder workflow
+- **Open Mod Folder** is now the primary workflow.
+- The toolkit scans JSON/DAT content and presents beginner-facing **Items**, **Monsters**, **Spells**, **Levels**, and **Other Data** categories.
+- Individual data-file opening remains available as an Advanced fallback.
+- `+ New` creates a named starter object for Items, Monsters, and Spells instead of asking beginners to choose a JSON value type.
+- The existing lossless form/raw editor and sprite picker remain available underneath the simplified UI.
