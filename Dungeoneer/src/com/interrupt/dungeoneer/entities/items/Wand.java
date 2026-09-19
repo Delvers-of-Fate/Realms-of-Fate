@@ -52,6 +52,9 @@ public class Wand extends Weapon {
 
 	private float attackTimer = 0.0f;
 
+    /** Runtime state for maintained / held spells such as Ward. */
+    private transient boolean heldSpellActive = false;
+
 	private Entity fireEffect = null;
 	private transient Particle chargeEffect = null;
 	private float chargeTime = 0f;
@@ -152,6 +155,120 @@ public class Wand extends Weapon {
         makeFireEffect(lvl);
     }
 
+    /** Returns true when this Wand contains a maintained spell. */
+    public boolean hasHeldSpell() {
+        return spell != null && spell.isHeldSpell();
+    }
+
+    public boolean isHeldSpellActive() {
+        return heldSpellActive;
+    }
+
+    /**
+     * Starts a maintained spell without routing through the normal one-shot
+     * Wand.doAttack() mana / charge path.
+     */
+    public boolean beginHeldSpell(Player p) {
+        if(p == null || !hasHeldSpell()) {
+            return false;
+        }
+
+        if(heldSpellActive) {
+            return true;
+        }
+
+        boolean consumeMana = usesMana;
+
+        if(!spell.canBeginHeldCast(p, consumeMana)) {
+            Audio.playSound("ui/ui_noammo_wand.mp3", 0.3f);
+            return false;
+        }
+
+        // Preserve normal Wand charge semantics for non-mana held spells:
+        // one charge raises the maintained spell, then the spell remains up
+        // until released or cancelled. Mana-powered Wards use their own upkeep.
+        if(!usesMana && usesCharges && getChargeNumber(p) <= 0) {
+            Audio.playSound("ui/ui_noammo_wand.mp3", 0.3f);
+            return false;
+        }
+
+        Vector3 direction = getHeldSpellDirection();
+        Vector3 position = getHeldSpellPosition(direction);
+
+        spell.damageType = damageType;
+        spell.baseDamage = getBaseDamage();
+        spell.randDamage = getRandDamage();
+
+        if(!spell.beginHeldCast(p, direction, position, consumeMana)) {
+            Audio.playSound("ui/ui_noammo_wand.mp3", 0.3f);
+            return false;
+        }
+
+        if(!usesMana && usesCharges) {
+            charges--;
+        }
+
+        heldSpellActive = true;
+        p.history.usedWand(this);
+        return true;
+    }
+
+    /** Updates a maintained spell while the attack button remains held. */
+    public boolean tickHeldSpell(Player p, float delta) {
+        if(p == null || !hasHeldSpell() || !heldSpellActive) {
+            return false;
+        }
+
+        Vector3 direction = getHeldSpellDirection();
+        Vector3 position = getHeldSpellPosition(direction);
+
+        boolean keepActive = spell.tickHeldCast(
+            p,
+            direction,
+            position,
+            delta,
+            usesMana
+        );
+
+        if(!keepActive) {
+            endHeldSpell(p);
+            return false;
+        }
+
+        return true;
+    }
+
+    /** Stops a maintained spell and guarantees spell-specific cleanup. */
+    public void endHeldSpell(Player p) {
+        if(!hasHeldSpell()) {
+            heldSpellActive = false;
+            return;
+        }
+
+        if(heldSpellActive) {
+            spell.endHeldCast(p);
+        }
+
+        heldSpellActive = false;
+    }
+
+    private Vector3 getHeldSpellDirection() {
+        Vector3 direction = getCrosshairDirection(-0.3f);
+        if(direction == null) {
+            direction = Game.camera.direction;
+        }
+
+        return direction.cpy();
+    }
+
+    private Vector3 getHeldSpellPosition(Vector3 direction) {
+        return new Vector3(
+            x + direction.x * 0.15f,
+            y + direction.z * 0.15f,
+            z + direction.y * 0.15f
+        );
+    }
+
 	public int getRandDamage() {
 		int boost = 0;
 		if(Game.instance != null && Game.instance.player != null) {
@@ -175,9 +292,28 @@ public class Wand extends Weapon {
     }
 
     public boolean canFire(Player p) {
+        if(p == null || spell == null) {
+            return false;
+        }
+
+        if(hasHeldSpell()) {
+            if(heldSpellActive) {
+                return true;
+            }
+
+            if(!spell.canBeginHeldCast(p, usesMana)) {
+                return false;
+            }
+
+            if(!usesMana && usesCharges) {
+                return getChargeNumber(p) > 0;
+            }
+
+            return true;
+        }
 
         if(usesMana) {
-            return p.mp >= spell.mpCost;
+            return p.mp >= spell.getCastManaCost();
         }
 
         if(usesCharges) {

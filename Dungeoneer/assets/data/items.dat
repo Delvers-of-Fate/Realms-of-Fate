@@ -206,6 +206,95 @@
         ]
     },
     "wands": [
+    {
+        "class": "com.interrupt.dungeoneer.entities.items.Wand",
+        "itemType": "wand",
+
+        "name": "Wand of Burning Hands",
+
+        "usesCharges": false,
+        "usesMana": true,
+
+        "damageType": "FIRE",
+        "baseDamage": 4,
+        "randDamage": 4,
+
+        "spell": {
+            "class": "com.interrupt.dungeoneer.entities.spells.Cone",
+
+            "mpCost": 5,
+
+            "range": 5.0,
+            "coneAngle": 60.0,
+
+            "knockback": 0.15,
+            "requiresLineOfSight": true,
+
+            "showConeParticles": true,
+
+            "particleSpriteAtlas": "particle",
+            "particleStartTex": 8,
+            "particleEndTex": 12,
+            "particleAnimSpeed": 35.0,
+
+            "particleCount": 32,
+            "particleSpeed": 0.06,
+            "particleLifetime": 28.0,
+
+            "particleScale": 0.55,
+            "particleEndScale": 0.15,
+
+            "particleSpawnDistance": 0.35,
+
+            "particleFullbrite": true
+
+            "spellColor": {
+                "r": 1.0,
+                "g": 0.25,
+                "b": 0.05,
+                "a": 1.0
+            }
+        },
+
+        "tex": 1,
+        "spriteAtlas": "wands"
+    },
+    {
+        "class": "com.interrupt.dungeoneer.entities.items.Wand",
+        "itemType": "wand",
+
+        "name": "Test Ward Wand",
+        "description": "Maintains a protective magical barrier while held.",
+
+        "usesCharges": false,
+        "usesMana": true,
+
+        "spell": {
+            "class": "com.interrupt.dungeoneer.entities.spells.Ward",
+
+            "initialManaCost": 2,
+
+            "manaCostPerTick": 2,
+            "manaTickRate": 1.0,
+
+            "damageReduction": 0.75,
+
+            "showWardParticles": true,
+            "wardParticleInterval": 0.08,
+            "wardParticlesPerPulse": 2,
+
+            "wardParticleDistance": 0.75,
+            "wardParticleWidth": 0.9,
+            "wardParticleHeight": 0.75,
+
+            "spellColor": {
+                "r": 0.3,
+                "g": 0.65,
+                "b": 1.0,
+                "a": 1.0
+            }
+        }
+    },
 {
     "class": "com.interrupt.dungeoneer.entities.items.Wand",
     "itemType": "wand",

@@ -22,6 +22,7 @@ import com.interrupt.dungeoneer.entities.items.*;
 import com.interrupt.dungeoneer.entities.items.Potion.PotionType;
 import com.interrupt.dungeoneer.entities.items.Weapon.DamageType;
 import com.interrupt.dungeoneer.entities.projectiles.BeamProjectile;
+import com.interrupt.dungeoneer.entities.spells.Ward;
 import com.interrupt.dungeoneer.entities.triggers.ButtonModel;
 import com.interrupt.dungeoneer.entities.triggers.Trigger;
 import com.interrupt.dungeoneer.entities.triggers.Trigger.TriggerType;
@@ -162,6 +163,9 @@ public class Player extends Actor {
 
 	private boolean attackButtonWasPressed = false;
 
+    /** Runtime reference used by Ward to intercept incoming damage. */
+    private transient Ward activeWard = null;
+
 	float walkVel = 0.05f;
 	float walkSpeed = 0.15f;
 	float minWalkSpeed = 0.01f;
@@ -297,6 +301,28 @@ public class Player extends Actor {
         }
 
         return true;
+    }
+
+    /** Registers the Ward currently protecting this player. */
+    public void setActiveWard(Ward ward) {
+        if(activeWard != null && activeWard != ward) {
+            Ward previousWard = activeWard;
+            activeWard = null;
+            previousWard.endHeldCast(this);
+        }
+
+        activeWard = ward;
+    }
+
+    /** Clears the active Ward only when the requesting Ward owns the slot. */
+    public void clearActiveWard(Ward ward) {
+        if(activeWard == ward) {
+            activeWard = null;
+        }
+    }
+
+    public Ward getActiveWard() {
+        return activeWard;
     }
 
     public void restoreMana(int amount) {
@@ -898,6 +924,7 @@ public class Player extends Actor {
 
         Audio.playSound("sfx_death.mp3", 1f);
 
+        endHeldSpellOnCurrentWand();
         dropItem(selectedBarItem, Game.instance.level, 0.075f);
 
         isDead = true;
@@ -1354,7 +1381,40 @@ public class Player extends Actor {
 
 		tick(level, delta);
 
-		if(handAnimateTimer > 0) {
+        Item combatHeld = GetHeldItem();
+        boolean handlingHeldSpell = combatHeld instanceof Wand
+            && ((Wand)combatHeld).hasHeldSpell();
+
+        if(handlingHeldSpell) {
+            Wand heldWand = (Wand)combatHeld;
+
+            // Maintained spells bypass Delver's charge-and-release attack
+            // path. Holding attack keeps the spell alive; releasing it
+            // immediately performs spell-specific cleanup.
+            attackCharge = 0f;
+
+            if(attack) {
+                if(!heldWand.isHeldSpellActive()) {
+                    // Attempt only once per button press. This prevents the
+                    // no-mana sound from firing every frame on a failed cast.
+                    if(!hasAttacked) {
+                        heldWand.beginHeldSpell(this);
+                        hasAttacked = true;
+                    }
+                }
+                else {
+                    heldWand.tickHeldSpell(this, delta);
+                }
+            }
+            else {
+                heldWand.endHeldSpell(this);
+            }
+
+            if(handAnimation == null) {
+                playIdleAnimation(combatHeld);
+            }
+        }
+        else if(handAnimateTimer > 0) {
 			handAnimateTimer -= delta;
 
 			Item held = GetHeldItem();
@@ -2101,9 +2161,22 @@ public class Player extends Actor {
 		Audio.playSound("splash2.mp3", volume);
 	}
 
+    /** Ensures maintained spells cannot survive weapon switches or drops. */
+    private void endHeldSpellOnCurrentWand() {
+        Item currentHeld = GetHeldItem();
+        if(currentHeld instanceof Wand) {
+            ((Wand)currentHeld).endHeldSpell(this);
+        }
+
+        if(activeWard != null && !activeWard.isActive()) {
+            activeWard = null;
+        }
+    }
+
 	public void ChangeHeldItem(Integer invPos, boolean doTransition)
 	{
 		if(handAnimation == null || !handAnimation.playing) {
+            endHeldSpellOnCurrentWand();
 			selectedBarItem = invPos;
 
 			if(doTransition) {
@@ -2290,6 +2363,9 @@ public class Player extends Actor {
 		if(selectedBarItem != null && selectedBarItem == itempos) selectedBarItem = null;
 
 		if(item instanceof Weapon || item instanceof Decoration || item instanceof Potion || item instanceof Food) {
+            if(item == GetHeldItem()) {
+                endHeldSpellOnCurrentWand();
+            }
 			heldItem = null;
 		}
 
@@ -2428,14 +2504,29 @@ public class Player extends Actor {
 	@Override
 	public int takeDamage(int damage, DamageType damageType, Entity instigator) {
         if(!isDead && !godMode) {
+            if(activeWard != null) {
+                if(activeWard.isActive()) {
+                    damage = activeWard.modifyIncomingDamage(
+                        damage,
+                        damageType,
+                        instigator
+                    );
+                }
+                else {
+                    activeWard = null;
+                }
+            }
+
 			int tookDamage = super.takeDamage(damage, damageType, instigator);
 
 			if(tookDamage < 0)
 				Game.flash(Colors.HEAL_FLASH, 20);
-			else
+            else if(tookDamage > 0)
 				Game.flash(Colors.HURT_FLASH, 20);
 
-			history.tookDamage(damage);
+            if(tookDamage > 0) {
+                history.tookDamage(tookDamage);
+            }
 
 			return tookDamage;
 		}

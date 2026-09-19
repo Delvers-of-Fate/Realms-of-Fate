@@ -12,6 +12,8 @@ import com.interrupt.dungeoneer.game.Level;
 import com.interrupt.dungeoneer.serializers.KryoSerializer;
 import com.interrupt.dungeoneer.statuseffects.StatusEffect;
 
+import com.interrupt.dungeoneer.entities.Player;
+
 import java.util.Random;
 
 public class Spell {
@@ -194,6 +196,60 @@ public class Spell {
         }
 
         return 1f;
+    }
+
+    /**
+     * Returns true if this spell remains active while the player
+     * holds the attack button.
+     */
+    public boolean isHeldSpell() {
+        return false;
+    }
+
+    /**
+     * Returns true when a held spell is allowed to begin.
+     *
+     * This check must not consume mana, charges, or other resources.
+     * Individual held spell classes can override it for their own rules.
+     */
+    public boolean canBeginHeldCast(Player owner, boolean consumeMana) {
+        return true;
+    }
+
+    /**
+     * Called once when a held spell begins.
+     *
+     * @return true if the spell successfully started.
+     */
+    public boolean beginHeldCast(
+        Player owner,
+        Vector3 direction,
+        Vector3 position,
+        boolean consumeMana) {
+
+        return false;
+    }
+
+    /**
+     * Called every tick while the held spell remains active.
+     *
+     * @return true to keep the spell active.
+     *         false to stop the spell.
+     */
+    public boolean tickHeldCast(
+        Player owner,
+        Vector3 direction,
+        Vector3 position,
+        float delta,
+        boolean consumeMana) {
+
+        return false;
+    }
+
+    /**
+     * Called when the held spell is released or cancelled.
+     */
+    public void endHeldCast(Player owner) {
     }
 
     public int doAttackRoll() {

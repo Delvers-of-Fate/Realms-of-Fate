@@ -27,13 +27,14 @@ The codebase currently contains custom work for systems including:
 | Projectile movement types | Implemented |
 | Player classes | Implemented / expanding |
 | Elemental resistances | Implemented / expanding |
-| Player profiles | Implemented / expanding |
-| Persistent stash | Implemented / expanding |
-| Portal destinations | Implemented / expanding |
-| Community profile synchronization | Implemented / expanding |
-| Discord integration | Implemented / expanding |
-| Modding Toolkit | Active development |
-| Held / maintained spells | In development |
-| Ward spells | In development |
+| Portal destinations | Researching |
+| Community Bot | Implemented / expanding |
+| Modding Toolkit | Researching |
+| Held / maintained spells | Implemented / expanding |
 | Skill / ability system | Planned |
+| ---- SPELL TYPES ----
+| Ward | Functional core implemented / visuals done |
+| Cone | Functional core implemented / visuals done |
+| Nova | WIP / WIP |
+| Chain | WIP / WIP |
 
