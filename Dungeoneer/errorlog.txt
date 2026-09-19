@@ -178,3 +178,30 @@ potions (com.interrupt.managers.ItemManager)
 	at com.badlogic.gdx.backends.lwjgl.LwjglApplication.mainLoop(LwjglApplication.java:217)
 	at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:126)
 
+Fatal error in Game loop!
+
+com.badlogic.gdx.utils.SerializationException: Error parsing JSON on line 211 near:  "wands": [
+    {
+    {
+        *ERROR*"class": "com.interrupt.dungeoneer.entities.items.Wand",
+       
+	at com.badlogic.gdx.utils.JsonReader.parse(JsonReader.java:550)
+	at com.badlogic.gdx.utils.JsonReader.parse(JsonReader.java:39)
+	at com.badlogic.gdx.utils.Json.fromJson(Json.java:746)
+	at com.interrupt.utils.JsonUtil.fromJson(JsonUtil.java:79)
+	at com.interrupt.utils.JsonUtil.fromJson(JsonUtil.java:53)
+	at com.interrupt.dungeoneer.game.ModManager.loadItemManager(ModManager.java:162)
+	at com.interrupt.dungeoneer.game.Game.loadManagers(Game.java:138)
+	at com.interrupt.dungeoneer.game.Game.<init>(Game.java:206)
+	at com.interrupt.dungeoneer.GameManager.startGame(GameManager.java:53)
+	at com.interrupt.dungeoneer.screens.GameScreen.show(GameScreen.java:182)
+	at com.badlogic.gdx.Game.setScreen(Game.java:61)
+	at com.interrupt.dungeoneer.GameApplication.createFromEditor(GameApplication.java:65)
+	at com.interrupt.dungeoneer.editor.EditorApplication.testLevel(EditorApplication.java:2304)
+	at com.interrupt.dungeoneer.editor.EditorActions$8.actionPerformed(EditorActions.java:114)
+	at com.interrupt.dungeoneer.editor.EditorInput.keyDown(EditorInput.java:46)
+	at com.badlogic.gdx.InputMultiplexer.keyDown(InputMultiplexer.java:80)
+	at com.badlogic.gdx.backends.lwjgl.LwjglInput.processEvents(LwjglInput.java:322)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication.mainLoop(LwjglApplication.java:217)
+	at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:126)
+

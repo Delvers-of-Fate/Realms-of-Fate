@@ -206,6 +206,129 @@
         ]
     },
     "wands": [
+{
+    "class": "com.interrupt.dungeoneer.entities.items.Wand",
+    "itemType": "wand",
+
+    "name": "Wand of Poison Cloud",
+    "description": "Creates a lingering poisonous cloud that damages anything caught inside.",
+
+    "usesCharges": false,
+    "usesMana": true,
+
+    "baseDamage": 2,
+    "randDamage": 2,
+    "damageType": "POISON",
+
+    "spell": {
+        "class": "com.interrupt.dungeoneer.entities.spells.Cloud",
+
+        "mpCost": 8,
+
+        "castDistance": 5.0,
+        "placementStep": 0.1,
+        "placementPadding": 0.15,
+        "snapToFloor": true,
+
+        "radius": 2.5,
+        "cloudHeight": 1.5,
+
+        "duration": 300.0,
+
+        "damageTickRate": 30.0,
+        "damageImmediately": true,
+
+        "knockback": 0.0,
+        "requiresLineOfSight": true,
+
+        "statusEffectChance": 1.0,
+
+        "autoTargetByOwner": false,
+        "damagePlayers": true,
+        "damageMonsters": true,
+        "damageOtherActors": false,
+
+        "showCloudParticles": true,
+
+        "particleSpriteAtlas": "particle",
+        "particleStartTex": 8,
+        "particleEndTex": 12,
+        "particleAnimSpeed": 35.0,
+
+        "particlesPerPulse": 5,
+        "particleInterval": 4.0,
+
+        "particleSpeed": 0.01,
+        "particleLifetime": 45.0,
+
+        "particleScale": 0.7,
+        "particleEndScale": 0.25,
+
+        "particleFullbrite": true,
+
+        "spellColor": {
+            "r": 0.25,
+            "g": 1.0,
+            "b": 0.2,
+            "a": 0.8
+        }
+    },
+
+    "tex": 1,
+    "spriteAtlas": "wands"
+},
+    {
+        "class": "com.interrupt.dungeoneer.entities.items.Wand",
+        "itemType": "wand",
+
+        "name": "Frost Nova Wand",
+
+        "usesCharges": false,
+        "usesMana": true,
+
+        "baseDamage": 5,
+        "randDamage": 4,
+        "damageType": "MAGIC",
+
+        "spell": {
+            "class": "com.interrupt.dungeoneer.entities.spells.Nova",
+
+            "mpCost": 8,
+
+            "radius": 5.0,
+            "knockback": 0.3,
+            "requiresLineOfSight": true,
+
+            "showNovaParticles": true,
+
+            "particleSpriteAtlas": "particle",
+            "particleStartTex": 8,
+            "particleEndTex": 12,
+            "particleAnimSpeed": 35.0,
+
+            "particleCount": 48,
+            "particleSpeed": 0.07,
+            "particleLifetime": 28.0,
+
+            "particleScale": 0.6,
+            "particleEndScale": 0.1,
+
+            "particleSpawnDistance": 0.2,
+            "particleVerticalSpread": 0.35,
+
+            "particleFullbrite": true,
+
+            "spellColor": {
+                "r": 0.25,
+                "g": 0.65,
+                "b": 1.0,
+                "a": 1.0
+            }
+        },
+
+        "tex": 1,
+        "spriteAtlas": "wands"
+    },
     {
         "class": "com.interrupt.dungeoneer.entities.items.Wand",
         "itemType": "wand",

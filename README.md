@@ -33,8 +33,8 @@ The codebase currently contains custom work for systems including:
 | Held / maintained spells | Implemented / expanding |
 | Skill / ability system | Planned |
 | ---- SPELL TYPES ----
-| Ward | Functional core implemented / visuals done |
-| Cone | Functional core implemented / visuals done |
-| Nova | WIP / WIP |
-| Chain | WIP / WIP |
+| Ward | Implemented |
+| Cone | Implemented |
+| Nova |Implemented |
+| Cloud | Implemented |
 
